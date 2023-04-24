@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" style="min-width:1920px">
     <router-view />
     <theme-picker />
   </div>
@@ -22,6 +22,10 @@ export default {
 };
 </script>
 <style scoped>
+#app{
+  min-width: 1920px;
+  overflow: scroll;
+}
 #app .theme-picker {
   display: none;
 }

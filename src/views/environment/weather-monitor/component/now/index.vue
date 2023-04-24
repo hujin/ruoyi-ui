@@ -3,31 +3,31 @@
         <div class="row">
             <div class="left1">
                 <div class="info">
-                    <div class="info-item">
+                    <div class="info-item" style="margin-bottom:15px">
                         <label>温度</label>
-                        <span>27°</span>
+                        <span>{{info.temp}}°</span>
                     </div>
-                    <div class="info-item">
+                    <div class="info-item" style="margin-bottom:15px">
                         <label>风向</label>
-                        <span>东南风</span>
+                        <span>{{info.windDirection}}</span>
                     </div>
                     <div class="info-item">
                         <label>相对湿度</label>
-                        <span>45%</span>
+                        <span>{{info.relativeHumidity}}%</span>
                     </div>
                     <div class="info-item">
                         <label>风速</label>
-                        <span>2级 1.2m/s</span>
+                        <span>{{info.windSpeedStr}} {{info.windSpeed}}m/s</span>
                     </div>
                 </div>
-                <div class="box-h36">海拔高度 15m</div>
+                <div class="box-h36">- 海拔高度 {{info.altitude}}m -</div>
             </div>
             <div class="right">
                 <div class="list">
                     <div class="list-item" v-for="(item,index) in list" :key="index">
                         <img :src="item.icon" alt="" class="icon">
                         <div class="text">{{item.label}}</div>
-                        <div class="text">{{item.value}}</div>
+                        <div class="text">{{info[item.key] + item.unit}}</div>
 
                     </div>
                 </div>
@@ -38,18 +38,66 @@
                 <el-tab-pane label="24小时实况数据" name="first">
                     <el-table ref="tables" :data="tableData" style="width:100%;height:100%">
                         <el-table-column type="index" width="50" align="center" />
-                        <el-table-column label="时间" width="120" align="center" />
-                        <el-table-column label="温度°C" width="120" align="center" />
-                        <el-table-column label="相对湿度%" width="120" align="center" />
-                        <el-table-column label="气压hpa" width="120" align="center" />
-                        <el-table-column label="降雨量mm" width="120" align="center" />
-                        <el-table-column label="辐射μT" width="120" align="center" />
-                        <el-table-column label="紫外线W/㎡" width="120" align="center" />
-                        <el-table-column label="PM2.5ug/㎡" width="120" align="center" />
-                        <el-table-column label="PM10ug/㎡" width="120" align="center" />
-                        <el-table-column label="风向" width="120" align="center" />
-                        <el-table-column label="风速m/s" width="120" align="center" />
-                        <el-table-column label="海拔高度m" width="120" align="center" />
+                        <el-table-column label="时间" width="220" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{new Date(scope.row.monitorTime).Format('yyyy-MM-dd hh:mm:ss')}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="温度°C" width="120" prop="temp" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.temp + '°C'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="相对湿度%" width="120" prop="relativeHumidity" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.relativeHumidity + '%'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="气压hpa" width="120" prop="airPressure" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.airPressure + 'hpa'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="降雨量mm" width="120" prop="rainfall" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.rainfall + 'mm'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="辐射μT" width="120" prop="radiation" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.radiation + 'μT'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="紫外线W/㎡" width="120" prop="uv" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.uv + 'W/㎡'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="PM2.5ug/㎡" width="120" prop="pm" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.pm + 'ug/㎡'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="PM10ug/㎡" width="120" prop="pmTen" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.pmTen + 'ug/㎡'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="风向" width="120" prop="windDirection" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.windDirection}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="风速m/s" width="120" prop="windSpeed" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.windSpeed + '%' + ' ' + scope.row.windSpeedStr}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="海拔高度m" width="120" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.altitude }}</div>
+                            </template>
+                        </el-table-column>
 
                     </el-table>
                 </el-tab-pane>
@@ -63,43 +111,67 @@
 <script>
 import * as echarts from 'echarts'
 import resize from '@/views/dashboard/mixins/resize'
+import { getMonitorList,getHourData } from "@/api/environment";
 
 export default {
     mixins: [resize],
+    props:{
+        info:{
+            type:Object,
+            default:{}
+        },
+        id:{
+            type:String | Number,
+            default:''
+        }
+    },
     data(){
         return {
             list:[{
                 icon:require('@/assets/images/environ/icon-1.png'),
                 label:'气压',
-                value:'145hPa'
+                value:'',
+                unit:'hPa',
+                key:'airPressure',
             },{
                 icon:require('@/assets/images/environ/icon-2.png'),
                 label:'降雨量',
-                value:'0mm'
-            },{
-                icon:require('@/assets/images/environ/icon-3.png'),
-                label:'光照强度',
-                value:'150ulx'
+                value:'',
+                unit:'mm',
+                key:'rainfall',
             },{
                 icon:require('@/assets/images/environ/icon-4.png'),
                 label:'辐射',
-                value:'0.02ut'
+                value:'',
+                unit:'μT',
+                key:'radiation',
             },{
                 icon:require('@/assets/images/environ/icon-5.png'),
                 label:'紫外线',
-                value:'2w/m'
+                value:'',
+                unit:'W/㎡',
+                key:'uv',
             },{
                 icon:require('@/assets/images/environ/icon-6.png'),
                 label:'PM10',
-                value:'0.02ug/m³'
+                value:'',
+                unit:'ug/㎡',
+                key:'pmTen',
             },{
                 icon:require('@/assets/images/environ/icon-7.png'),
                 label:'PM2.5',
-                value:'7ug/m³'
+                value:'',
+                unit:'ug/㎡',
+                key:'pm',
             }],
             active:'first',
             tableData:[],
-            chart:null
+            chart:null,
+            xAxisData:[],
+            temps:[],
+            rainfalls:[],
+            relativeHumidites:[],
+            airPressures:[]
         }
     },
     watch:{
@@ -109,16 +181,58 @@ export default {
                     this.initChart()
                 })
             }
+        },
+        id(val){
+            if (val) {
+                // this.getList()
+                this.getChartData();
+            }
         }
     },
     methods:{
         handleClick(tab, event){
 
         },
+        getChartData(){
+            console.log(this.id)
+            getHourData({
+                stationId:this.id
+            }).then(res => {
+                let rainfalls = [];
+                let temps = [];
+                let relativeHumidites = [];
+                let airPressures = []
+                let xAxisData = []
+
+                res.data.forEach(item => {
+                    rainfalls.push(item.rainfall)
+                    temps.push(item.temp)
+                    relativeHumidites.push(item.relativeHumidity)
+                    airPressures.push(item.airPressure)
+                    xAxisData.push(item.monitorHour)
+                })
+                this.$set(this, 'xAxisData', xAxisData)
+                this.$set(this, 'rainfalls', rainfalls)
+                this.$set(this, 'temps', temps)
+                this.$set(this, 'relativeHumidites', relativeHumidites)
+                this.$set(this, 'airPressures', airPressures)
+                this.$set(this, 'tableData', res.data)
+
+            })
+        },
+        getList(){
+            getMonitorList({
+                stationId:this.id
+            }).then(res => {
+                if (res.code == 200) {
+                    this.$set(this, 'tableData', res.data.rows)
+                }
+            })
+        },
         initChart(){
             var el = this.$refs['chart'];
             this.chart = echarts.init(el)
-            const colors = ['#5470C6', '#91CC75', '#EE6666'];
+            const colors = ['#05A75E', '#F78724', '#409EFE', '#536DE6'];
             this.chart.setOption({
                     color: colors,
                     tooltip: {
@@ -127,18 +241,12 @@ export default {
                             type: 'cross'
                         }
                     },
-                    grid: {
-                        right: '20%'
+                    grid:{
+                        bottom:35,
                     },
-                    toolbox: {
-                        feature: {
-                            dataView: { show: true, readOnly: false },
-                            restore: { show: true },
-                            saveAsImage: { show: true }
-                        }
-                    },
+                   
                     legend: {
-                        data: ['Evaporation', 'Precipitation', 'Temperature']
+                        data: ['降水', '温度', '相对湿度', '气压']
                     },
                     xAxis: [
                         {
@@ -147,13 +255,16 @@ export default {
                                 alignWithLabel: true
                             },
                             // prettier-ignore
-                            data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                            data: this.xAxisData,
+                            axisLabel: {
+                                formatter: '{value} 时'
+                            }
                         }
                     ],
                     yAxis: [
                         {
                             type: 'value',
-                            name: 'Evaporation',
+                            name: '降水',
                             position: 'right',
                             alignTicks: true,
                             axisLine: {
@@ -163,69 +274,89 @@ export default {
                                 }
                             },
                             axisLabel: {
-                                formatter: '{value} ml'
+                                formatter: '{value} mm'
                             }
                         },
-    {
-      type: 'value',
-      name: 'Precipitation',
-      position: 'right',
-      alignTicks: true,
-      offset: 80,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors[1]
-        }
-      },
-      axisLabel: {
-        formatter: '{value} ml'
-      }
-    },
-    {
-      type: 'value',
-      name: '温度',
-      position: 'left',
-      alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors[2]
-        }
-      },
-      axisLabel: {
-        formatter: '{value} °C'
-      }
-    }
-  ],
-  series: [
-    {
-      name: 'Evaporation',
-      type: 'bar',
-      data: [
-        2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4, 3.3
-      ]
-    },
-    {
-      name: 'Precipitation',
-      type: 'bar',
-      yAxisIndex: 1,
-      data: [
-        2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3
-      ]
-    },
-    {
-      name: 'Temperature',
-      type: 'line',
-      yAxisIndex: 2,
-      data: [2.0, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3, 23.4, 23.0, 16.5, 12.0, 6.2]
-    }
-  ]
-})
+                        {
+                            type: 'value',
+                            name: '相对湿度',
+                            position: 'right',
+                            alignTicks: true,
+                            offset: 80,
+                            axisLine: {
+                                show: true,
+                                lineStyle: {
+                                    color: colors[2]
+                                }
+                            },
+                            axisLabel: {
+                                formatter: '{value} %'
+                            }
+                        },
+                        {
+                            type: 'value',
+                            name: '温度',
+                            position: 'left',
+                            alignTicks: true,
+                            axisLine: {
+                                show: true,
+                                lineStyle: {
+                                    color: colors[1]
+                                }
+                            },
+                            axisLabel: {
+                                formatter: '{value} °C'
+                            }
+                        },
+                         {
+                            type: 'value',
+                            name: '气压',
+                            position: 'left',
+                            alignTicks: true,
+                            offset: 80,
+                            axisLine: {
+                                show: true,
+                                lineStyle: {
+                                    color: colors[3]
+                                }
+                            },
+                            axisLabel: {
+                                formatter: '{value} hpa'
+                            }
+                        },
+                    ],
+                    series: [
+                        {
+                            name: '降水',
+                            type: 'bar',
+                            data: this.rainfalls
+                        },
+                        {
+                            name: '温度',
+                            type: 'line',
+                            yAxisIndex: 1,
+                            data: this.temps
+                        },
+                        {
+                            name: '相对湿度',
+                            type: 'line',
+                            yAxisIndex: 2,
+                            data: this.relativeHumidites
+                        },
+                        {
+                            name: '气压',
+                            type: 'line',
+                            yAxisIndex: 3,
+                            data: this.airPressures
+                        }
+                    ]
+                })
         }
     },
     created(){
-       
+       if (this.id) {
+            this.getChartData();
+       }
     }
 }
 </script>
@@ -240,11 +371,28 @@ export default {
 
     .row{
         display: flex;
+        background-color: #F8F9FB;
+        box-sizing: border-box;
+        padding: 26px 25px 16px 25px;
     }
 
     .left1{
-        width: 310px;
+        position: relative;
+        width: 359px;
         margin-right: 61px;
+        padding-right: 50px;
+        box-sizing: border-box;
+
+        &::after{
+            content:' ';
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            position: absolute;
+            height: 78px;
+            width: 1px;
+            background-color: #DCDCDC;
+        }
     }
 
     .info{
@@ -275,15 +423,13 @@ export default {
 
     .box-h36{
         width: 100%;
-        height: 36px;
-        margin-top: 12px;
+        height: 24px;
+        margin-top: 8px;
         box-sizing: border-box;
-        background-color: #DCE2FF;
         border-radius: 4px;
-        border: 1px solid #536DE6;
         font-size: 16px;
         font-weight: 400;
-        color: #536DE6;
+        color: rgba(0,0,0,0.4);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -311,6 +457,10 @@ export default {
                     font-weight: 400;
                     color: rgba(0,0,0,0.9);
                     line-height: 24px;
+                }
+
+                &:last-child{
+                    margin-right: 0;
                 }
             }
         }

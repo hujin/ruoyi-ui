@@ -275,3 +275,37 @@
 	position: relative;
 	float: right;
 }
+
+.custom-title{
+	display: flex;
+	align-items: center;
+
+	.text{
+		font-size: 20px;
+		font-weight: 500;
+		color: #000000;
+		margin-right: 16px;
+	}
+
+	.circle{
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background-color: #05A75E;
+		margin-right: 8px;
+
+		&.gray{
+			background-color: #ccc;
+		}
+	}
+
+	.status{
+		font-size: 20px;
+		font-weight: 400;
+		color: #05A75E;
+
+		&.gray{
+			color: #ccc;
+		}
+	}
+}

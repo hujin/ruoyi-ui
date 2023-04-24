@@ -27,7 +27,7 @@
 </template> 
 <script>
 import { mapGetters, mapState } from "vuex";
-
+import Cookies from 'js-cookie'
 
 export default {
     data(){
@@ -45,7 +45,13 @@ export default {
     },
     methods:{
         go(item){
-            this.$router.push(item.path)
+            console.log(item)
+            
+            if (item.name == 'Lighting') {
+                location.href = `http://202.101.162.69:18900?accessToken=${Cookies.get('Admin-Token')}&type=3`
+            } else {
+                this.$router.push(item.path)
+            }
         }
     },
     computed:{

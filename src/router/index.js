@@ -169,6 +169,23 @@ export const dynamicRoutes = [
   }
 ]
 
+//积水监测预警子系统
+export const hydropsRoutes = [{
+  component:Layout,
+  meta:{
+    platform:'hydrops'
+  },
+  path:"/hydrops",
+  redirect:'/hydrops/dashboard',
+  children: [{
+    path:"dashboard",
+    component: () => import('@/views/hydrops/dashboard/index.vue')
+  },{
+    path:"device",
+    component: () => import('@/views/hydrops/device')
+  }]
+}]
+
 // 环境检测子系统
 export const environmentRoutes = [
   {
@@ -187,6 +204,9 @@ export const environmentRoutes = [
     },{
       path:"weather-data",
       component: () => import('@/views/environment/weather-monitor/data.vue')
+    },{
+      path:"weather-history",
+      component: () => import('@/views/environment/weather-history/index.vue')
     },{
       path:"weather-publish",
       component: () => import('@/views/environment/weather-publish')
