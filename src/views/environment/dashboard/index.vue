@@ -13,7 +13,7 @@
                     <div style="font-size:16px">{{info.warningType}}</div>
                 </div>
             </div>
-            <div class="box-h100 gray">
+            <div class="box-h100 gray" @click="handleFilter('')">
                 <div class="label">微气象站设备数量</div>
                 <div class="number">
                     <span class="strong">{{info.count}}</span>
@@ -21,7 +21,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="box-h100 gray">
+                <div class="box-h100 gray" :class="{active : current === 1}" @click="handleFilter(1)">
                     <div class="flex">
                         <div class="circle"></div>
                         <div class="label">正常</div>
@@ -31,7 +31,7 @@
                         <span>台</span>
                     </div>
                 </div>
-                <div class="box-h100 gray">
+                <div class="box-h100 gray" :class="{active : current === 0}" @click="handleFilter(0)">
                     <div class="flex gray">
                         <div class="circle"></div>
                         <div class="label">离线</div>
@@ -162,6 +162,21 @@
                 </div>
             </div>
         </div>
+        <div class="zoom">
+            <div class="item" @click="zoomIn">
+                <i class="el-icon-plus"></i>
+            </div>
+            <div class="item" @click="zoomOut">
+                <i class="el-icon-minus"></i>
+            </div>
+        </div>
+        <div class="search">
+            <el-input v-model="keyword" placeholder="请输入搜索内容" clearable>
+                <div slot="append" @click="search" class="search-btn" type="primary" icon="el-icon-search">
+                    <i class="el-icon-search" style="font-size:20px"></i>
+                </div>
+            </el-input>
+        </div>
         <el-dialog :visible.sync="visible" width="800px">
             <template slot="title">
                 <div class="custom-title">
@@ -215,7 +230,7 @@
                         <div class="value">{{detail.uv}}W/㎡</div>
                     </div>
                     <div class="item">
-                        <div class="label">海拔高度</div>
+                        <div class="label">海拔高度：</div>
                         <div class="value">{{detail.altitude}}m</div>
                     </div>
                     <div class="item">
@@ -244,6 +259,7 @@ window._AMapSecurityConfig = {
 export default {
     data(){
         return {
+            keyword:'',
             map : null,
             mouseTool : null,
             overlays : [],
@@ -295,10 +311,61 @@ export default {
                 uv: "",
                 windDirection: "",
                 windSpeedStr: ""
-            }
+            },
+            markerList:[],
+            current:''
         }
     },
     methods:{
+        search(){
+            let keyword = this.keyword;
+            let list = JSON.parse(JSON.stringify(this.markerList))
+            console.log(list)
+            this.map.clearMap();
+            let result;
+            if (keyword) {
+                result = list.filter(item => {
+                    return item.name.indexOf(keyword) > -1
+                })
+            } else {
+                console.log(list)
+                result = list
+            }
+           
+            result.forEach(item => {
+                this.addMarker(item)
+            })
+        },
+        zoomIn(){
+            this.map.zoomIn()
+        },
+        zoomOut(){
+            this.map.zoomOut()
+        },
+        handleFilter(val){
+            if (val === this.current) {
+                return;
+            }
+            let list = JSON.parse(JSON.stringify(this.info.slpIntegratedManagementList))
+            this.map.clearMap();
+            this.current = val;
+
+            if (val === '') {
+                list.forEach(item => {
+                    this.addMarker(item)
+                })
+                this.$set(this, 'markerList', list)
+                return;
+            }
+            let result = list.filter(item => {
+                return item.status === val
+            })
+            result.forEach(item => {
+                this.addMarker(item)
+            })
+            this.$set(this, 'markerList', result)
+
+        },
         goDetail(){
             this.visible = false;
             this.$router.push({
@@ -319,6 +386,9 @@ export default {
                     center : [120.252635, 30.236056], //中心点坐标  郑州
                     resizeEnable: true
                 });
+
+                this.getInfo();
+
             }).catch(e => {
                 console.log(e);
             });
@@ -328,18 +398,22 @@ export default {
                 if (res.code == 200) {
                     this.$set(this, 'info', res.data);
                     let list = res.data.slpIntegratedManagementList;
+                    this.$set(this, 'markerList', list)
                     if (this.AMap) {
                         list.forEach(item => {
-                            new this.AMap.Marker({
-                                position:[item.longitude, item.latitude],
-                                map:this.map
-                            }).on('click', (event) => {
-                                console.log(event, 'marker click')
-                                this.getMonitorDetailInMap(item.id)
-                            })
+                            this.addMarker(item)
                         });
                     }
                 }
+            })
+        },
+        addMarker(item){
+            new this.AMap.Marker({
+                position:[item.longitude, item.latitude],
+                map:this.map
+            }).on('click', (event) => {
+                console.log(event, 'marker click')
+                this.getMonitorDetailInMap(item.id)
             })
         },
         getMonitorDetailInMap(id){
@@ -352,8 +426,8 @@ export default {
         }
     },
     mounted(){
-        this.getInfo();
-        this.initMap()
+        this.initMap();
+
     }
 }
 </script>
@@ -374,6 +448,54 @@ export default {
         #map{
             width: 100%;
             height: 100%;
+        }
+    }
+
+    .search{
+        position: absolute;
+        left: 24px;
+        top: 24px;
+        width: 286px;
+
+        .el-input-group__append{
+            position: relative;
+            padding: 0;
+            width: 52px;
+            height: 36px;
+        }
+
+        .search-btn{
+            cursor: pointer;
+            background:#4E86FF;
+            color:#fff;
+            width:100%;
+            height:100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+
+    .zoom{
+        position: absolute;
+        right: 500px;
+        bottom: 24px;
+        width: 42px;
+        height: 82px;
+        background-color: #fff;
+        box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.1);
+        border-radius: 4px;
+        display: flex;
+        flex-direction: column;
+
+        .item{
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
         }
     }
 
@@ -437,10 +559,16 @@ export default {
             &.gray{
                 background: #F8F9FB;
                 border-radius: 8px;
-                border: 1px solid #F8F9FB;
+                border: 1px solid #DCDCDC;
                 color: rgba(0,0,0,0.8);;
                 margin-bottom: 16px;
                 flex-direction: column;
+
+                &.active{
+                    background: linear-gradient(132deg, #FFFFFF 0%, #E5F6FF 27%, #F9FBFF 57%, #FCFDFF 100%);
+                    border-radius: 8px;
+                    border: 2px solid #409EFE;
+                }
                 .number{
                     text-align: center;
                     font-size: 16px;

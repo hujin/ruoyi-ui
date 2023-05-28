@@ -34,8 +34,8 @@ export default {
         return {
             lampPost:require(`../../assets/images/platform/icon-1.png`),
             lighting:require(`../../assets/images/platform/icon-2.png`),
-            wellLid:require(`../../assets/images/platform/icon-3.png`),
             hydrops:require(`../../assets/images/platform/icon-4.png`),
+            wellLid:require(`../../assets/images/platform/icon-3.png`),
             video:require(`../../assets/images/platform/icon-5.png`),
             openPlatform:require(`../../assets/images/platform/icon-6.png`),
             cockpit:require(`../../assets/images/platform/icon-7.png`),
@@ -46,10 +46,10 @@ export default {
     methods:{
         go(item){
             console.log(item)
-            
             if (item.name == 'Lighting') {
-                location.href = `http://202.101.162.69:18900?accessToken=${Cookies.get('Admin-Token')}&type=3`
+                location.href = `http://202.101.162.69:18900/#/login?accessToken=${Cookies.get('Admin-Token')}&type=4`
             } else {
+                
                 this.$router.push(item.path)
             }
         }

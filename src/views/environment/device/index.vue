@@ -29,7 +29,6 @@
             <el-col :span="1.5">
                 <el-button
                     type="primary"
-                    plain
                     icon="el-icon-plus"
                     size="mini"
                     @click="handleAdd"
@@ -67,16 +66,7 @@
                     @click="handleMultDelete"
                 >批量删除</el-button>
             </el-col>
-            <el-col :span="1.5">
-                <el-button
-                    type="info"
-                    plain
-                    icon="el-icon-sort"
-                    size="mini"
-                    @click="toggleExpandAll"
-                >展开/折叠</el-button>
-            </el-col>
-            <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+
         </el-row>
         <el-table ref="tables" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="50" align="center" />
@@ -107,6 +97,11 @@
                     <el-button
                         size="mini"
                         type="text"
+                        @click="handleView(scope.row)"
+                    >详情</el-button>
+                    <el-button
+                        size="mini"
+                        type="text"
                         @click="handleDelete(scope.row)"
                     >删除</el-button>
                 </template>
@@ -125,36 +120,36 @@
                 <el-row>
                     <el-col :span="12">
                         <el-form-item prop="name" label="设备名称">
-                            <el-input v-model="form.name"></el-input>
+                            <el-input v-model="form.name" :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="road" label="所在道路">
-                            <el-input v-model="form.road"></el-input>
+                            <el-input v-model="form.road" :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="type" label="设备型号">
-                            <el-input v-model="form.type"></el-input>
+                            <el-input v-model="form.type" :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="address" label="详细地址">
-                            <el-input v-model="form.address"></el-input>
+                            <el-input v-model="form.address" :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="uid" label="设备编号UID">
-                            <el-input v-model="form.uid"></el-input>
+                            <el-input v-model="form.uid" :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="roadSide" label="道路侧向">
-                            <el-input v-model="form.roadSide"></el-input>
+                            <el-input v-model="form.roadSide"  :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item prop="status" label="状态">
+                        <el-form-item prop="status" label="状态" :disabled="true">
                             <el-select v-model="form.status">
                                 <el-option label="非正常" :value="0"></el-option>
                                 <el-option label="正常" :value="1"></el-option>
@@ -163,12 +158,12 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="longitude" label="经度">
-                            <el-input v-model="form.longitude"></el-input>
+                            <el-input v-model="form.longitude" :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="enable" label="是否启用">
-                            <el-select v-model="form.enable" style="width:100%">
+                            <el-select v-model="form.enable" style="width:100%"  :disabled="state == 'view'">
                                 <el-option label="非启用" :value="0"></el-option>
                                 <el-option label="启用" :value="1"></el-option>
                                 <el-option label="移除" :value="2"></el-option>
@@ -178,20 +173,22 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="latitude" label="维度">
-                            <el-input v-model="form.latitude"></el-input>
+                            <el-input v-model="form.latitude"  :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="24">
                         <el-form-item prop="installTime" label="安装时间">
                             <el-date-picker v-model="form.installTime" 
                                             type="date"
+                                            :disabled="state == 'view'"
                                             value-format="yyyy-MM-dd" ></el-date-picker>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="24">
+                    <el-col :span="24" v-if="form.enable === 2">
                         <el-form-item prop="removeTime" label="移除时间">
                             <el-date-picker v-model="form.removeTime" 
                                             type="date"
+                                            :disabled="state == 'view'"
                                             value-format="yyyy-MM-dd" ></el-date-picker>
                         </el-form-item>
                     </el-col>
@@ -199,49 +196,48 @@
                 <el-divider content-position="left">安装情况</el-divider>
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item prop="installDepartmenet" label="安装部门">
-                            <el-input v-model="form.installDepartmenet"></el-input>
+                        <el-form-item prop="installDepartment" label="安装部门">
+                            <el-input v-model="form.installDepartment"  :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="联系人及联系方式">
                             <div class="flex">
-                                <el-input v-model="form.installDepartmentName"></el-input>
-                                <el-input v-model="form.installDepartmentPhone"></el-input>
+                                <el-input v-model="form.installDepartmentName"  :disabled="state == 'view'"></el-input>
+                                <el-input v-model="form.installDepartmentPhone"  :disabled="state == 'view'"></el-input>
 
                             </div>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item prop="maintainDepartment" label="养护部门">
-                            <el-input v-model="form.maintainDepartment"></el-input>
+                            <el-input v-model="form.maintainDepartment"  :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="联系人及联系方式">
                             <div class="flex">
-                                <el-input v-model="form.maintainDepartmentName"></el-input>
-                                <el-input v-model="form.maintainDepartmentPhone"></el-input>
+                                <el-input v-model="form.maintainDepartmentName"  :disabled="state == 'view'"></el-input>
+                                <el-input v-model="form.maintainDepartmentPhone"  :disabled="state == 'view'"></el-input>
                             </div>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item prop="propertyRightDepartmentt" label="产权部门">
-                            <el-input v-model="form.propertyRightDepartmentt"></el-input>
+                        <el-form-item prop="propertyRightDepartment" label="产权部门">
+                            <el-input v-model="form.propertyRightDepartment"  :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="联系人及联系方式">
                             <div class="flex">
-                                <el-input v-model="form.propertyRightDepartmentName"></el-input>
-                                <el-input v-model="form.propertyRightDepartmentPhone"></el-input>
-
+                                <el-input v-model="form.propertyRightDepartmentName"  :disabled="state == 'view'"></el-input>
+                                <el-input v-model="form.propertyRightDepartmentPhone"  :disabled="state == 'view'"></el-input>
                             </div>
                         </el-form-item>
                     </el-col>
                     <el-col :span="24">
                         <el-form-item label="备注:">
-                            <el-input v-model="form.remark"></el-input>
+                            <el-input v-model="form.remark"  :disabled="state == 'view'"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -314,12 +310,13 @@ export default {
             },
             rules:{
 
-            }
+            },
+            state:''
         }
     },
     methods:{
         handleDownload(){
-            
+
         },
         handleExport(){
             this.download('/slp/slp/management/export', {
@@ -327,9 +324,17 @@ export default {
                 road:this.queryParams.road,
             }, `device_${new Date().getTime()}.xlsx`) 
         },
+        handleView(row){
+            getDeviceDetail(row.id).then(res => {
+                this.$set(this, 'form', res.data);
+                this.state = 'view'
+                this.open = true
+            })
+        },
         handleUpdate(row){
             getDeviceDetail(row.id).then(res => {
                 this.$set(this, 'form', res.data);
+                this.state = 'update'
                 this.open = true
             })
         },
@@ -343,6 +348,7 @@ export default {
         },
         handleAdd(){
             this.open = true;
+            this.state = 'add'
             this.title = "添加设备";
         },
         handleQuery(){

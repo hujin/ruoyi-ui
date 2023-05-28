@@ -169,23 +169,6 @@ export const dynamicRoutes = [
   }
 ]
 
-//积水监测预警子系统
-export const hydropsRoutes = [{
-  component:Layout,
-  meta:{
-    platform:'hydrops'
-  },
-  path:"/hydrops",
-  redirect:'/hydrops/dashboard',
-  children: [{
-    path:"dashboard",
-    component: () => import('@/views/hydrops/dashboard/index.vue')
-  },{
-    path:"device",
-    component: () => import('@/views/hydrops/device')
-  }]
-}]
-
 // 环境检测子系统
 export const environmentRoutes = [
   {
@@ -210,6 +193,202 @@ export const environmentRoutes = [
     },{
       path:"weather-publish",
       component: () => import('@/views/environment/weather-publish')
+    },{
+      path:"setting",
+      component: () => import('@/views/environment/setting')
+    }]
+  }
+]
+
+// 井盖
+export const wellLidRoutes = [
+  {
+    component:Layout,
+    meta:{
+      platform:'wellLid'
+    },
+    path:"/wellLid",
+    redirect:'/wellLid/dashboard',
+    children:[{
+      path:"dashboard",
+      component: () => import('@/views/wellLid/dashboard/index.vue')
+    },{
+      path:"device",
+      component: () => import('@/views/wellLid/device')
+    },{
+      path:"inspect",
+      component: () => import('@/views/wellLid/inspect')
+    },{
+      path:'alarms',
+      component: () => import('@/views/wellLid/alarms')
+    },{
+      path:'fortify',
+      component: () => import('@/views/wellLid/fortify')
+    },{
+      path:'fortify-history',
+      component: () => import('@/views/wellLid/fortify-history')
+    },{
+      path:'setting',
+      component: () => import('@/views/wellLid/setting')
+    }]
+  }
+]
+
+// 视频
+export const videoRoutes = [
+  {
+    component:Layout,
+    meta:{
+      platform:'video'
+    },
+    path:"/video",
+    redirect:'/video/dashboard',
+    children:[{
+      path:"dashboard",
+      component: () => import('@/views/video/dashboard/index.vue')
+    },{
+      path:"device",
+      component: () => import('@/views/video/device')
+    },{
+      path:"monitor",
+      component: () => import('@/views/video/monitor')
+    },{
+      path:'setting',
+      component: () => import('@/views/video/setting')
+    }]
+  }
+]
+
+// 积水
+export const hydropsRoutes = [
+  {
+    component:Layout,
+    meta:{
+      platform:'hydrops'
+    },
+    path:"/hydrops",
+    redirect:'/hydrops/dashboard',
+    children:[{
+      path:"dashboard",
+      component: () => import('@/views/hydrops/dashboard/index.vue')
+    },{
+      path:"device",
+      component: () => import('@/views/hydrops/device')
+    },{
+      path:"monitor",
+      component: () => import('@/views/hydrops/monitor')
+    },{
+      path:'alarms-list',
+      component: () => import('@/views/hydrops/alarms-list')
+    },{
+      path:'alarms-history',
+      component: () => import('@/views/hydrops/alarms-history')
+    },{
+      path:'setting',
+      component: () => import('@/views/hydrops/setting')
+    }]
+  }
+]
+
+// 灯杆系统
+export const lampPostRoutes = [
+  {
+    component:Layout,
+    meta:{
+      platform:'lampPost'
+    },
+    path:"/lampPost",
+    redirect:'/lampPost/dashboard',
+    children:[{
+      path:'dashboard',
+      component: () => import('@/views/lampPost/dashboard/index.vue')
+    },{
+      path:'device',
+      component: () => import('@/views/lampPost/device')
+    },{
+      path:'analysis/lamp',
+      component: () => import('@/views/lampPost/analysis/lamp.vue')
+    },{
+      path:'analysis/mount',
+      component: () => import('@/views/lampPost/analysis/mount.vue')
+    },{
+      path:'analysis/device-count',
+      component: () => import('@/views/lampPost/analysis/device-count.vue')
+    },{
+      path:'analysis/device-state',
+      component: () => import('@/views/lampPost/analysis/device-state.vue')
+    },{
+      path:'analysis/device-energy',
+      component: () => import('@/views/lampPost/analysis/device-energy.vue')
+    },{
+      path:'analysis/device-energy-list',
+      component: () => import('@/views/lampPost/analysis/device-energy-list.vue')
+    },{
+      path:'analysis/depart',
+      component: () => import('@/views/lampPost/analysis/depart.vue')
+    },{
+      path:'alarm/list',
+      component: () => import('@/views/lampPost/alarm/list.vue')
+    },{
+      path:'alarm/history',
+      component: () => import('@/views/lampPost/alarm/history.vue')
+    },{
+      path:'alarm/record',
+      component: () => import('@/views/lampPost/alarm/record.vue')
+    },{
+      path:'workflow/my-audit',
+      component: () => import('@/views/lampPost/workflow/my-audit.vue')
+    },{
+      path:'workflow/my-apply',
+      component: () => import('@/views/lampPost/workflow/my-apply.vue')
+    },{
+      path:'workflow/my-order',
+      component: () => import('@/views/lampPost/workflow/my-order.vue')
+    },{
+      path:'workflow/analysis',
+      component: () => import('@/views/lampPost/workflow/analysis.vue')
+    },{
+      path:'workflow/analysis-apply',
+      component: () => import('@/views/lampPost/workflow/analysis-apply.vue')
+    },{
+      path:'workflow/analysis-device',
+      component: () => import('@/views/lampPost/workflow/analysis-device.vue')
+    },{
+      path:'workflow/analysis-workflow',
+      component: () => import('@/views/lampPost/workflow/analysis-workflow.vue')
+    },{
+      path:'workflow/depart-setting',
+      component: () => import('@/views/lampPost/workflow/depart-setting.vue')
+    },{
+      path:'conserve/apply',
+      component: () => import('@/views/lampPost/conserve/apply.vue')
+    },{
+      path:'conserve/content-list',
+      component: () => import('@/views/lampPost/conserve/content-list.vue')
+    },{
+      path:'conserve/plan-list',
+      component: () => import('@/views/lampPost/conserve/plan-list.vue')
+    },{
+      path:'conserve/plan-history',
+      component: () => import('@/views/lampPost/conserve/plan-history.vue')
+    },{
+      path:'conserve/person-list',
+      component: () => import('@/views/lampPost/conserve/person-list.vue')
+    },{
+      path:'conserve/analysis',
+      component: () => import('@/views/lampPost/conserve/analysis.vue')
+    },{
+      path:'conserve/analysis-person',
+      component: () => import('@/views/lampPost/conserve/analysis-person.vue')
+    },{
+      path:'conserve/analysis-time',
+      component: () => import('@/views/lampPost/conserve/analysis-time.vue')
+    },{
+      path:'conserve/analysis-address',
+      component: () => import('@/views/lampPost/conserve/analysis-address.vue')
+    },{
+      path:'log/list',
+      component: () => import('@/views/lampPost/log/list.vue')
     }]
   }
 ]
@@ -235,6 +414,10 @@ export default new Router({
   routes: [
     ...constantRoutes,
     ...environmentRoutes,
+    ...wellLidRoutes,
+    ...videoRoutes,
+    ...hydropsRoutes,
+    ...lampPostRoutes,
     ...cockpit
   ]
 })

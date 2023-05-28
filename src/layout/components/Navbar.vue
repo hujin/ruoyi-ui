@@ -1,29 +1,14 @@
 <template>
   <div class="navbar">
-    <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
-
-    <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!topNav"/>
-    <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav"/>
+    <div class="home-icon" @click="goPlatform">
+      <img src="@/assets/images/home.png" alt="">
+    </div>
+    <div v-if="system" class="system-name">{{system}}</div>
+    <!-- <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!topNav"/> -->
+    <!-- <top-nav id="topmenu-container" class="topmenu-container" v-if="topNav"/> -->
 
     <div class="right-menu">
-      <template v-if="device!=='mobile'">
-        <search id="header-search" class="right-menu-item" />
-        
-        <el-tooltip content="源码地址" effect="dark" placement="bottom">
-          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
-        <el-tooltip content="文档地址" effect="dark" placement="bottom">
-          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
-        <screenfull id="screenfull" class="right-menu-item hover-effect" />
-
-        <el-tooltip content="布局大小" effect="dark" placement="bottom">
-          <size-select id="size-select" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
-      </template>
+      
 
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
         <div class="avatar-wrapper">
@@ -72,7 +57,8 @@ export default {
     ...mapGetters([
       'sidebar',
       'avatar',
-      'device'
+      'device',
+      'system'
     ]),
     setting: {
       get() {
@@ -92,6 +78,9 @@ export default {
     }
   },
   methods: {
+    goPlatform(){
+      this.$router.push('/platform')
+    },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
@@ -116,7 +105,31 @@ export default {
   overflow: hidden;
   position: relative;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  box-shadow: 0px 2px 4px 0px rgba(0,96,255,0.1);
+  z-index: 99;
+  display: flex;
+  align-items: center;
+
+  .home-icon{
+    width: 70px;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    img{
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  .system-name{
+    margin-right: auto;
+    font-size: 20px;
+    font-weight: 500;
+    color: #000000;
+  }
 
   .hamburger-container {
     line-height: 46px;
@@ -146,7 +159,8 @@ export default {
   }
 
   .right-menu {
-    float: right;
+    // float: right;
+    margin-left: auto;
     height: 100%;
     line-height: 50px;
 

@@ -455,7 +455,7 @@ export default {
     },
     data(){
         return {
-            mask:true,
+            mask:false,
             left_top:1,
             left_bottom:1,
             map:null,
@@ -585,6 +585,7 @@ export default {
                     var bounds = result.districtList[0].boundaries;
                     var mask = []
                     for(var i =0;i<bounds.length;i+=1){
+                        console.log(bounds[i])
                         mask.push([bounds[i]])
                     }
                     this.map = new AMap.Map('map', {
@@ -595,12 +596,17 @@ export default {
                         labelzIndex:130,
                         pitch:40,
                         zoom:11,
+                        mask,
+                        mapStyle: "amap://styles/darkblue",
                         layers:[
                             new AMap.TileLayer.RoadNet({
-                                //rejectMapMask:true
+                                rejectMapMask:true,
+                                opacity:0.2
                             }),
-                            new AMap.TileLayer.Satellite()
-            ]
+                            new AMap.TileLayer.Satellite({
+                                // rejectMapMask:true
+                            })
+                        ]
                     })
 
                     var maskerWater = new AMap.Marker({

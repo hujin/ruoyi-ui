@@ -39,10 +39,12 @@ export default {
             let list = [];
             let platform = this.$route.matched[0].meta.platform;
             if (platform) {
-                console.log(this.systemRouters,this.systemList, 'fff', platform)
                 this.systemRouters.forEach(item => {
-                    if (item.name.toLowerCase() == platform) {
+                    if (item.name.toLowerCase() == platform.toLowerCase()) {
+                        console.log(item)
                         list = item.children
+                        this.$store.dispatch('app/setSystem', item.meta.title)
+
                     }
                 });
             } else {

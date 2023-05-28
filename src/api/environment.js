@@ -9,7 +9,7 @@ export function getOverviewInfo(){
 
 export function getMonitorDetailInMap(id){
     return request({
-        url:`/slp/slp/management//getMonitorInfoById/${id}`,
+        url:`/slp/slp/management/getMonitorInfoById/${id}`,
         method:'get'
     })
 }
@@ -101,7 +101,7 @@ export function getRelease(id){
 
 export function deleteRelease(ids){
     return request({
-        url:`/slp/slp/slp/release/${ids}`,
+        url:`/slp/slp/slp/release/remove/${ids}`,
         method:'delete'
     })
 }
@@ -149,5 +149,20 @@ export function getHourData(params){
         url:`/slp/slp/monitor/findHourList`,
         params,
         method:'get'
+    })
+}
+
+export function getOfflineTime(){
+    return request({
+        url:'/slp/slp/management/getOfflineTime',
+        method:'get'
+    })
+}
+
+export function setOfflineTime(data){
+    return request({
+        url:'/slp/slp/management/setOfflineTime',
+        data,
+        method:'post'
     })
 }

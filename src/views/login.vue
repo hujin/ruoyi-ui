@@ -130,7 +130,7 @@ export default {
             Cookies.remove('rememberMe');
           }
           this.$store.dispatch("Login", this.loginForm).then(() => {
-            this.$router.push({ path: this.redirect || "/platform" }).catch(()=>{});
+            this.$router.push({ path: "/platform" }).catch(()=>{});
           }).catch(() => {
             this.loading = false;
             if (this.captchaEnabled) {
