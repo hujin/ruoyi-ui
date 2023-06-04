@@ -163,12 +163,12 @@
                     <el-row>
                         <el-col :span="8">
                             <el-form-item prop="name" label="设备名称">
-                                <el-input placeholder="请输入设备名称" v-model="form.name"></el-input>
+                                <el-input placeholder="请输入设备名称" v-model="form.name" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="deviceModel" label="设备型号">
-                                <el-input placeholder="请输入设备型号" v-model="form.deviceModel"></el-input>
+                                <el-input placeholder="请输入设备型号" v-model="form.deviceModel" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <!-- <el-col :span="8">
@@ -178,7 +178,7 @@
                         </el-col> -->
                         <el-col :span="8">
                             <el-form-item prop="uid" label="设备UID">
-                                <el-input placeholder="请输入设备UID" v-model="form.uid"></el-input>
+                                <el-input placeholder="请输入设备UID" v-model="form.uid" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         
@@ -200,7 +200,7 @@
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="address" label="地理地址">
-                                <el-input placeholder="请输入地理地址" v-model="form.address">
+                                <el-input placeholder="请输入地理地址" v-model="form.address" :disabled="state == 'view'">
                                     <div slot="append" @click.stop="mapDialog = true">
                                         <div style="width:100%;height:100%">
                                             <i class="el-icon-location"></i>
@@ -212,7 +212,7 @@
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="roadSide" label="道路侧向">
-                                <el-select placeholder="请选择道路侧向" v-model="form.roadSide" style="width:100%">
+                                <el-select placeholder="请选择道路侧向" v-model="form.roadSide" style="width:100%" :disabled="state == 'view'">
                                      <el-option
                                         v-for="dict in dict.type.sys_roadside"
                                         :key="dict.value"
@@ -224,12 +224,12 @@
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="longitude" label="经度">
-                                <el-input placeholder="请输入经度" v-model="form.longitude"></el-input>
+                                <el-input placeholder="请输入经度" v-model="form.longitude" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="latitude" label="纬度">
-                                <el-input placeholder="请输入纬度" v-model="form.latitude"></el-input>
+                                <el-input placeholder="请输入纬度" v-model="form.latitude" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                     </el-row>
@@ -238,22 +238,22 @@
                     <el-row>
                         <el-col :span="8">
                             <el-form-item prop="poleHeight" label="灯杆高度(m)" :disabled="true">
-                                <el-input v-model="form.poleHeight" style="width:100%"></el-input>
+                                <el-input v-model="form.poleHeight" style="width:100%" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="voltage" label="电压(V)" :disabled="true">
-                                <el-input v-model="form.voltage" style="width:100%"></el-input>
+                                <el-input v-model="form.voltage" style="width:100%" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="electricCurrent" label="电流(A)" :disabled="true">
-                                <el-input v-model="form.electricCurrent" style="width:100%"></el-input>
+                                <el-input v-model="form.electricCurrent" style="width:100%" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="power" label="功率" :disabled="true">
-                                <el-input v-model="form.power" style="width:100%"></el-input>
+                                <el-input v-model="form.power" style="width:100%" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         
@@ -263,7 +263,7 @@
                     <el-row>
                         <el-col :span="8">
                             <el-form-item prop="combinedPole" label="是否合杆:" :disabled="true">
-                                <el-select v-model="form.combinedPole" style="width:100%">
+                                <el-select v-model="form.combinedPole" style="width:100%" :disabled="state == 'view'">
                                     <el-option label="是" :value="1"></el-option>
                                     <el-option label="否" :value="0"></el-option>
                                 </el-select>
@@ -271,7 +271,7 @@
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="deviceMountingMax" label="最大挂载率:" :disabled="true">
-                                 <el-input-number v-model="form.deviceMountingMax" :min="0" :max="6" ></el-input-number>
+                                 <el-input-number v-model="form.deviceMountingMax" :min="0" :max="6" :disabled="state == 'view'"></el-input-number>
                             </el-form-item>
                         </el-col>
                     </el-row>
@@ -280,7 +280,7 @@
                     <el-row>
                         <el-col :span="8">
                             <el-form-item prop="status" label="状态" :disabled="true">
-                                <el-select v-model="form.status" style="width:100%">
+                                <el-select v-model="form.status" style="width:100%" :disabled="state == 'view'">
                                     <el-option label="异常" :value="0"></el-option>
                                     <el-option label="正常" :value="1"></el-option>
                                 </el-select>
@@ -323,57 +323,104 @@
                     <el-row>
                         <el-col :span="8">
                             <el-form-item label="安装部门" prop="installDepartment">
-                                <el-input placeholder="请输入安装部门"  v-model="form.installDepartment"></el-input>
+                                <treeselect 
+                                    @select="resetDepartment({
+                                        clearList:['installDepartmentName', 'installDepartmentPhone']
+                                    })" 
+                                    v-model="form.installDepartment" 
+                                    :options="deptOptions" 
+                                    :normalizer="normalizer" 
+                                    placeholder="请选择安装部门" 
+                                    :disabled="state == 'view'"
+                                />
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="养护部门" prop="maintainDepartment">
-                                <el-input placeholder="请输入养护部门" v-model="form.maintainDepartment"></el-input>
+                                <treeselect 
+                                    @select="resetDepartment({
+                                        clearList:['maintainDepartmentName', 'maintainDepartmentPhone']
+                                    })" 
+                                    v-model="form.maintainDepartment" 
+                                    :options="deptOptions" 
+                                    :normalizer="normalizer" 
+                                    placeholder="请选择养护部门" 
+                                    :disabled="state == 'view'"
+                                />
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="产权部门" prop="propertyRightDepartment">
-                                <el-input  placeholder="请输入产权部门" v-model="form.propertyRightDepartment"></el-input>
+                                <treeselect 
+                                    @select="resetDepartment({
+                                        clearList:['propertyRightDepartmentName', 'propertyRightDepartmentPhone']
+                                    })" 
+                                    v-model="form.propertyRightDepartment" 
+                                    :options="deptOptions" 
+                                    :normalizer="normalizer" 
+                                    placeholder="请选择产权部门" 
+                                    :disabled="state == 'view'"
+                                />
                             </el-form-item>
                         </el-col>
+                    </el-row>
+                    <el-row>
                         <el-col :span="8">
                             <el-form-item label="联系人及联系方式" prop="installDepartmentName">
-                                <el-input placeholder="请输入联系人"  v-model="form.installDepartmentName"></el-input>
+                                <el-select :disabled="state == 'view'" @change="(val)=>contactsChange(val, installDepartmentNameList, 'installDepartmentPhone')" v-model="form.installDepartmentName" placeholder="请选择联系人" style="width:100%">
+                                    <el-option
+                                        v-for="dict in installDepartmentNameList"
+                                        :key="dict.userId"
+                                        :label="dict.nickName"
+                                        :value="dict.userId + ''"/>
+                                </el-select>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="联系人及联系方式" prop="maintainDepartmentName">
-                                <el-input placeholder="请输入联系人" v-model="form.maintainDepartmentName"></el-input>
+                                <el-select :disabled="state == 'view'" @change="(val)=>contactsChange(val, maintainDepartmentNameList, 'maintainDepartmentPhone')" v-model="form.maintainDepartmentName" placeholder="请选择联系人" style="width:100%">
+                                    <el-option
+                                        v-for="dict in maintainDepartmentNameList"
+                                        :key="dict.userId"
+                                        :label="dict.nickName"
+                                        :value="dict.userId  + ''"/>
+                                </el-select>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="联系人及联系方式" prop="propertyRightDepartmentName">
-                                <el-input placeholder="请输入联系人" v-model="form.propertyRightDepartmentName"></el-input>
+                                <el-select :disabled="state == 'view'" @change="(val)=>contactsChange(val, propertyRightDepartmentNameList, 'propertyRightDepartmentPhone')" v-model="form.propertyRightDepartmentName" placeholder="请选择联系人" style="width:100%">
+                                    <el-option
+                                        v-for="dict in propertyRightDepartmentNameList"
+                                        :key="dict.userId"
+                                        :label="dict.nickName"
+                                        :value="dict.userId  + ''"/>
+                                </el-select>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="" prop="installDepartmentPhone">
-                                <el-input placeholder="请输入联系方式" v-model="form.installDepartmentPhone"></el-input>
+                                <el-input placeholder="请输入联系方式" v-model="form.installDepartmentPhone" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="" prop="maintainDepartmentPhone">
-                                <el-input placeholder="请输入联系方式" v-model="form.maintainDepartmentPhone"></el-input>
+                                <el-input placeholder="请输入联系方式" v-model="form.maintainDepartmentPhone" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="" prop="propertyRightDepartmentPhone">
-                                <el-input  placeholder="请输入联系方式" v-model="form.propertyRightDepartmentPhone"></el-input>
+                                <el-input  placeholder="请输入联系方式" v-model="form.propertyRightDepartmentPhone" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                         <el-col :span="24">
                             <el-form-item label="备注" prop="remark">
-                                <el-input placeholder="请输入备注" type="textarea" v-model="form.remark"></el-input>
+                                <el-input placeholder="请输入备注" type="textarea" v-model="form.remark" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
                     </el-row>
                 </div>
-                <div class="btn-group" style="text-align:center">
+                <div class="btn-group" style="text-align:center" v-if="state != 'view'">
                     <el-button @click="cancel">取 消</el-button>
                     <el-button type="primary" @click="submitForm">确 定</el-button>
                 </div>
@@ -383,7 +430,7 @@
                 </div>
                 <div class="sub-container" v-else>
                     <div class="sub-tab-header">
-                        <div class="sub-tab-item" :class="{active: index === subActive}" @click="subActive = index" v-for="(item, index) in form.slpOtherDeviceInfoList" :key="index">
+                        <div class="sub-tab-item" :class="{active: index === subActive}" @click="handleChangeSubActive(index)" v-for="(item, index) in form.slpOtherDeviceInfoList" :key="index">
                             <span>{{typeFormat({type:item.type})}}</span>
                         </div>
                         <div class="sub-tab-item add"  @click="addDeviceState = true">
@@ -402,17 +449,17 @@
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="设备型号">
-                                            <el-input v-model="item.deviceModel" placeholder="请输入设备型号"></el-input>
+                                            <el-input v-model="item.deviceModel" placeholder="请输入设备型号" :disabled="state == 'view'"></el-input>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="设备名称">
-                                            <el-input v-model="item.name" placeholder="请输入设备名称"></el-input>
+                                            <el-input v-model="item.name" placeholder="请输入设备名称" :disabled="state == 'view'"></el-input>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="设备UID">
-                                            <el-input v-model="item.uid" placeholder="请输入设备UID"></el-input>
+                                            <el-input v-model="item.uid" placeholder="请输入设备UID" :disabled="state == 'view'"></el-input>
                                         </el-form-item>
                                     </el-col>
                                 </el-row>
@@ -442,12 +489,12 @@
                                    
                                     <el-col :span="8" >
                                         <el-form-item label="长度">
-                                            <el-input v-model="item.deviceLength"></el-input>
+                                            <el-input v-model="item.deviceLength" :disabled="state == 'view'"></el-input>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="宽度">
-                                            <el-input v-model="item.deviceWidth"></el-input>
+                                            <el-input v-model="item.deviceWidth" :disabled="state == 'view'"></el-input>
                                         </el-form-item>
                                     </el-col>
                                 </el-row>        
@@ -456,47 +503,106 @@
                                 <el-row>
                                     <el-col :span="8">
                                         <el-form-item label="安装部门">
-                                            <el-input placeholder="请输入安装部门"  v-model="item.installDepartment"></el-input>
+                                            <treeselect 
+                                                @select="resetDepartment({
+                                                    clearList:['installDepartmentName', 'installDepartmentPhone'], 
+                                                    form:item, 
+                                                    listKey:'itemInstallDepartmentNameList',
+                                                    vmodel:'installDepartment',
+                                                    info: item
+                                                })" 
+                                                v-model="item.installDepartment" 
+                                                :options="deptOptions" 
+                                                :normalizer="normalizer" 
+                                                placeholder="请选择安装部门" 
+                                                :disabled="state == 'view'"
+                                            />
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="养护部门">
-                                            <el-input placeholder="请输入养护部门" v-model="item.maintainDepartment"></el-input>
+                                            <treeselect 
+                                                @select="resetDepartment({
+                                                    clearList:['maintainDepartmentName', 'maintainDepartmentPhone'], 
+                                                    form:item, 
+                                                    listKey:'itemMaintainDepartmentNameList',
+                                                    vmodel:'maintainDepartment',
+                                                    info: item
+                                                })" 
+                                                v-model="item.maintainDepartment" 
+                                                :options="deptOptions" 
+                                                :normalizer="normalizer" 
+                                                placeholder="请选择养护部门" 
+                                                :disabled="state == 'view'"
+                                            />
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="产权部门">
-                                            <el-input  placeholder="请输入产权部门" v-model="item.propertyRightDepartment"></el-input>
+                                            <treeselect 
+                                                @select="resetDepartment({
+                                                    clearList:['propertyRightDepartmentName', 'propertyRightDepartmentPhone'], 
+                                                    form:item, 
+                                                    listKey:'itemPropertyRightDepartmentNameList',
+                                                    vmodel:'propertyRightDepartment',
+                                                    info: item
+                                                })" 
+                                                v-model="item.propertyRightDepartment" 
+                                                :options="deptOptions" 
+                                                :normalizer="normalizer" 
+                                                placeholder="请选择产权部门" 
+                                                :disabled="state == 'view'"
+                                            />
+                                        </el-form-item>
+                                    </el-col>
+                                </el-row>
+                                <el-row>
+                                    <el-col :span="8">
+                                        <el-form-item label="联系人及联系方式">
+                                            <el-select :disabled="state == 'view'" @change="(val)=>contactsChange(val, itemInstallDepartmentNameList, 'installDepartmentPhone', item)" v-model="item.installDepartmentName" placeholder="请选择联系人" style="width:100%">
+                                                <el-option
+                                                    v-for="dict in itemInstallDepartmentNameList"
+                                                    :key="dict.userId"
+                                                    :label="dict.nickName"
+                                                    :value="dict.userId + ''"/>
+                                            </el-select>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="联系人及联系方式">
-                                            <el-input placeholder="请输入联系人"  v-model="item.installDepartmentName"></el-input>
+                                            <el-select :disabled="state == 'view'" @change="(val)=>contactsChange(val, itemMaintainDepartmentNameList, 'maintainDepartmentPhone', item)" v-model="item.maintainDepartmentName" placeholder="请选择联系人" style="width:100%">
+                                                <el-option
+                                                    v-for="dict in itemMaintainDepartmentNameList"
+                                                    :key="dict.userId"
+                                                    :label="dict.nickName"
+                                                    :value="dict.userId  + ''"/>
+                                            </el-select>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="联系人及联系方式">
-                                            <el-input placeholder="请输入联系人" v-model="item.maintainDepartmentName"></el-input>
-                                        </el-form-item>
-                                    </el-col>
-                                    <el-col :span="8">
-                                        <el-form-item label="联系人及联系方式">
-                                            <el-input placeholder="请输入联系人" v-model="item.propertyRightDepartmentName"></el-input>
-                                        </el-form-item>
-                                    </el-col>
-                                    <el-col :span="8">
-                                        <el-form-item label="">
-                                            <el-input placeholder="请输入联系方式" v-model="item.installDepartmentPhone"></el-input>
+                                            <el-select :disabled="state == 'view'" @change="(val)=>contactsChange(val, itemPropertyRightDepartmentNameList, 'propertyRightDepartmentPhone', item)" v-model="item.propertyRightDepartmentName" placeholder="请选择联系人" style="width:100%">
+                                                <el-option
+                                                    v-for="dict in itemPropertyRightDepartmentNameList"
+                                                    :key="dict.userId"
+                                                    :label="dict.nickName"
+                                                    :value="dict.userId  + ''"/>
+                                            </el-select>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="">
-                                            <el-input placeholder="请输入联系方式" v-model="item.maintainDepartmentPhone"></el-input>
+                                            <el-input placeholder="请输入联系方式" v-model="item.installDepartmentPhone" :disabled="state == 'view'"></el-input>
                                         </el-form-item>
                                     </el-col>
                                     <el-col :span="8">
                                         <el-form-item label="">
-                                            <el-input  placeholder="请输入联系方式" v-model="item.propertyRightDepartmentPhone"></el-input>
+                                            <el-input placeholder="请输入联系方式" v-model="item.maintainDepartmentPhone" :disabled="state == 'view'"></el-input>
+                                        </el-form-item>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <el-form-item label="">
+                                            <el-input  placeholder="请输入联系方式" v-model="item.propertyRightDepartmentPhone" :disabled="state == 'view'"></el-input>
                                         </el-form-item>
                                     </el-col>
                                 </el-row>
@@ -607,11 +713,16 @@ import { getEnvironmentDeviceList } from '@/api/environment'
 import selectMap from '@/components/select-map/index.vue'
 import showMap from '@/components/show-map/index.vue'
 
+import Treeselect from "@riophae/vue-treeselect";
+import { listUser } from "@/api/system/user";
+import { listDept } from "@/api/system/dept";
+
 export default {
     dicts: ['sys_road','sys_roadside','sys_device_type'],
     components:{
         selectMap,
-        showMap
+        showMap,
+        Treeselect
     },
     data(){
         return {
@@ -713,10 +824,84 @@ export default {
                 road: '',
                 name:''
             },
-            selectModel:{}
+            selectModel:{},
+
+            deptOptions:[],
+            installDepartmentNameList:[],
+            maintainDepartmentNameList:[],
+            propertyRightDepartmentNameList:[],
+
+            itemInstallDepartmentNameList:[],
+            itemMaintainDepartmentNameList:[],
+            itemPropertyRightDepartmentNameList:[],
         }
     },
+    watch:{
+        'form.installDepartment'(val){
+            if (val) {
+                this.getListUser(val,'installDepartmentNameList')
+            }
+        },
+        'form.maintainDepartment'(val){
+            if (val) {
+                this.getListUser(val,'maintainDepartmentNameList')
+            }
+        },
+        'form.propertyRightDepartment'(val){
+            if (val) {
+                this.getListUser(val,'propertyRightDepartmentNameList')
+            }
+        },
+    },
     methods:{
+        handleChangeSubActive(index){
+            this.subActive = index
+            const start = this.form.slpOtherDeviceInfoList[index]
+            console.log(start)
+            this.getListUser(start.installDepartment,'itemInstallDepartmentNameList')
+            this.getListUser(start.maintainDepartment,'itemMaintainDepartmentNameList')
+            this.getListUser(start.propertyRightDepartment,'itemPropertyRightDepartmentNameList')
+        },
+        getListUser(val,key){
+            listUser({
+                deptId:val,
+                pageNum:1,
+                pageSize:9999
+            }).then(res => {
+                if (res.code == 200) {
+                    this.$set(this, key, res.rows || [])
+                }
+            })
+        },
+        resetDepartment({clearList, form, listKey, vmodel, info}){
+            if(!form){
+                form = this.form
+            }else{
+                this.$nextTick(()=>{
+                    this.getListUser(info[vmodel], listKey)
+                })
+            }
+            clearList.forEach(item => {
+                form[item] = ''
+            })
+        },
+        contactsChange(val, list, key, form = this.form){
+            const info = list.find(item => item.userId == val )
+            if(info){
+                form[key] = info.phonenumber
+            }
+        },
+        /** 转换部门数据结构 */
+        normalizer(node) {
+            if (node.children && !node.children.length) {
+                delete node.children;
+            }
+            return {
+                id: node.deptId,
+                label: node.deptName,
+                children: node.children
+            };
+        },
         cancelDeviceItem(){
             this.$set(this, 'addDeviceForm', {
                 type:'',
@@ -741,9 +926,12 @@ export default {
                     return
                 }
             }
-            
             if (this.addDeviceForm.type == 2 || this.addDeviceForm.type == 3) {
                 this.form.slpOtherDeviceInfoList.push(this.addDeviceForm.device_form)
+                const start = this.addDeviceForm.device_form
+                this.getListUser(start.installDepartment,'itemInstallDepartmentNameList')
+                this.getListUser(start.maintainDepartment,'itemMaintainDepartmentNameList')
+                this.getListUser(start.propertyRightDepartment,'itemPropertyRightDepartmentNameList')
             } else {
                 this.form.slpOtherDeviceInfoList.push({
                     type: this.addDeviceForm.type,
@@ -773,7 +961,6 @@ export default {
             if (!this.selectModel.id) {
                 this.$modal.msgError("请先选择需要绑定的设备");
                 return
-                
             }
 
             let obj = JSON.parse(JSON.stringify(this.selectModel))
@@ -878,6 +1065,12 @@ export default {
                 if (res.code == 200) {
                     if (res.data) {
                         this.$set(this, 'form', res.data);
+                        if(res.data.slpOtherDeviceInfoList && res.data.slpOtherDeviceInfoList.length > 0){
+                            const start = res.data.slpOtherDeviceInfoList[0]
+                            this.getListUser(start.installDepartment,'itemInstallDepartmentNameList')
+                            this.getListUser(start.maintainDepartment,'itemMaintainDepartmentNameList')
+                            this.getListUser(start.propertyRightDepartment,'itemPropertyRightDepartmentNameList')
+                        }
                         if (res.data.slpOtherDeviceInfoList) {
                             this.subActive = 0
                         }
@@ -900,6 +1093,7 @@ export default {
             this.open = true;
             this.state = 'add'
             this.title = "添加设备";
+            this.reset()
         },
         handleQuery(){
             this.queryParams.pageNum = 1;
@@ -989,13 +1183,19 @@ export default {
                 propertyRightDepartment:'',
                 propertyRightDepartmentName:'',
                 propertyRightDepartmentPhone:'',
-                isDeleted:false
+                isDeleted:false,
+                slpOtherDeviceInfoList: [],
             };
             this.resetForm("form");
-
-        }
+        },
+        initDept(){
+            listDept().then(response => {
+                this.deptOptions = this.handleTree(response.data, "deptId");
+            });
+        },
     },
     created(){
+        this.initDept();
         this.getList();
     }
 }
