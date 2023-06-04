@@ -4,22 +4,36 @@
             <div id="map"></div>
         </div>
         <div class="info-wrap">
-            <div class="row">
+            <div class="row" style="justify-content:start">
                 <div class="label" style="width:70px">道路:</div>
                 <div class="val">
-                    <el-select v-model="road"></el-select>
+                    <el-select v-model="road">
+                        <el-option
+                        v-for="dict in dict.type.sys_road"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                        />
+                    </el-select>
                 </div>
             </div>
-            <div class="row">
+            <div class="row" style="justify-content:start">
                 <div class="label" style="width:70px">视频分类:</div>
                 <div class="val">
-                    <el-select v-model="road"></el-select>
+                    <el-select v-model="deviceCategory">
+                        <el-option
+                            v-for="dict in dict.type.sys_road"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
                 </div>
             </div>
             <div class="box-h100 gray">
                 <div class="label">总监控设备数量</div>
                 <div class="number">
-                    <span class="strong">{{info.count}}</span>
+                    <span class="strong">{{info.totalMonitorCount}}</span>
                     <span>(台)</span>
                 </div>
             </div>
@@ -40,7 +54,7 @@
                         <div class="label">离线</div>
                     </div>
                      <div class="number">
-                        <span class="strong">{{info.offLine}}</span>
+                        <span class="strong">{{info.offlineCount}}</span>
                         <span>台</span>
                     </div>
                 </div>
@@ -118,7 +132,7 @@ import * as echarts from 'echarts'
 
 import { getMonitorDetailInMap } from "@/api/environment";
 
-import { getOverviewInfo } from "@/api/video";
+import { getOverviewInfo,getRealTimeUrl } from "@/api/video";
 
 
 import AMapLoader from '@amap/amap-jsapi-loader'
@@ -126,8 +140,10 @@ window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
 export default {
+    dicts: ['sys_road','sys_video_type'],
     data(){
         return {
+            deviceCategory:'',
             road:'',
             keyword:'',
             markerList:[],
@@ -151,7 +167,8 @@ export default {
             visible:false,
             detail:{
                 
-            }
+            },
+            chart_data:[]
         }
     },
     methods:{
@@ -176,12 +193,7 @@ export default {
                         type: 'pie',
                         radius: ['25%', '50%'],
                          center: ['50%', '50%'],
-                        data: [
-                            { value: 1048, name: '公安' },
-                            { value: 735, name: '交警' },
-                            { value: 580, name: '市政' },
-                            { value: 484, name: '其他' },
-                        ],
+                        data: this.chart_data,
                         emphasis: {
                             itemStyle: {
                                 shadowBlur: 10,
@@ -248,17 +260,45 @@ export default {
             getOverviewInfo().then(res => {
                 if (res.code == 200) {
                     this.$set(this, 'info', res.data);
-                    let list = res.data.slpIntegratedManagementList;
+                    let list = res.data.slpMonitorList;
                     if (this.AMap) {
                         list.forEach(item => {
-                            new this.AMap.Marker({
-                                position:[item.longitude, item.latitude],
-                                map:this.map
-                            }).on('click', (event) => {
-                                console.log(event, 'marker click')
-                                this.getMonitorDetailInMap(item.id)
-                            })
+                            if (item.longitude) {
+                                new this.AMap.Marker({
+                                    position:[item.longitude, item.latitude],
+                                    map:this.map
+                                }).on('click', (event) => {
+                                    console.log(event, 'marker click')
+                                    this.getMonitorDetailInMap(item.id)
+                                })
+                            }
+                            
                         });
+                    }
+
+                    if (res.data){
+                        let chart_data = []
+                        chart_data.push({
+                            value: res.data.policeCount, name: '公安'
+                        })
+
+                        chart_data.push({
+                            value: res.data.trafficPoliceCount, name: '交警'
+                        })
+
+                        chart_data.push({
+                            value: res.data.municipalAdministrationCount, name: '市政'
+                        })
+
+                        chart_data.push({
+                            value: res.data.otherCount, name: '其他'
+                        })
+
+                        this.$set(this, 'chart_data', chart_data)
+                        this.$nextTick(() =>  {
+                            this.initChart()
+
+                        })
                     }
                 }
             })
@@ -275,7 +315,6 @@ export default {
     mounted(){
         this.getInfo();
         this.initMap();
-        this.initChart()
     }
 }
 </script>

@@ -2,7 +2,7 @@
     <div class="app-container conserve-analysis" style="background:#eee;height:calc(100vh - 50px)">
         <div class="c-container">
             <div class="item" @click="goPerson">
-                <div class="icon"></div>
+                <div class="icon" style="background:#6395F9"></div>
                 <div class="item-title">人员</div>
                 <div class="item-desc">统计分析</div>
                 <div class="item-en">PERSON</div>
@@ -13,8 +13,8 @@
                 <div class="item-desc">统计分析</div>
                 <div class="item-en">TIME</div>
             </div>
-            <div class="item" @click="goAddress">
-                <div class="icon"></div>
+            <div class="item" @click="goAddress" >
+                <div class="icon" style="background:#6ADCAF"></div>
                 <div class="item-title">巡查地点</div>
                 <div class="item-desc">统计分析</div>
                 <div class="item-en">TIME</div>
@@ -68,6 +68,7 @@ export default {
             display: flex;
             flex-direction: column;
             align-items: center;
+            cursor: pointer;
 
             .icon{
                 width: 120px;

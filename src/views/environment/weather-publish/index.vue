@@ -336,7 +336,7 @@ export default {
                 return
             }
 
-            this.$modal.confirm('是否确认删除该数据吗？').then(function() {
+            this.$modal.confirm('是否确认删除该数据吗？').then(() => {
                 return deleteDevice(this.ids.join(','));
             }).then(() => {
                 this.getList();
@@ -425,7 +425,7 @@ export default {
       })
     },
     cancel(){
-      this.reset();
+      // this.reset();
       this.open = false
     },
     submitForm(){

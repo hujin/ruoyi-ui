@@ -117,6 +117,44 @@
               <el-input-number v-model="form.orderNum" controls-position="right" :min="0" />
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item prop="deptAddr" label="单位地址">
+              <el-input placeholder="请输入单位地址" v-model="form.deptAddr">
+                <div slot="append" @click.stop="mapDialog = true">
+                  <div style="width:100%;height:100%">
+                    <i class="el-icon-location"></i>
+                  </div>
+                </div>
+              </el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item prop="deptAttr" label="单位属性">
+              <el-input placeholder="请输入单位属性" v-model="form.deptAttr"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item prop="longitude" label="经度">
+              <el-input placeholder="请输入经度" v-model="form.longitude"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item prop="latitude" label="纬度">
+              <el-input placeholder="请输入纬度" v-model="form.latitude"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item prop="deptType" label="单位类型">
+              <el-select placeholder="请选择单位类型" v-model="form.deptType">
+                <el-option label="普通"
+                            value="COMMON"
+                    />
+                <el-option label="申请单位"
+                            value="APPLY"
+                    />
+              </el-select>
+            </el-form-item>
+          </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
@@ -154,6 +192,8 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+        <select-map v-if="mapDialog" :visible="mapDialog" :lng="form.longitude" :lat="form.latitude" @close="mapDialog = false" @add="addMarker"></select-map>
+
   </div>
 </template>
 
@@ -162,10 +202,13 @@ import { listDept, getDept, delDept, addDept, updateDept, listDeptExcludeChild }
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
+import selectMap from '@/components/select-map/index.vue'
+
+
 export default {
   name: "Dept",
   dicts: ['sys_normal_disable'],
-  components: { Treeselect },
+  components: { Treeselect,selectMap },
   data() {
     return {
       // 遮罩层
@@ -190,7 +233,10 @@ export default {
         status: undefined
       },
       // 表单参数
-      form: {},
+      form: {
+        latitude:'',
+        longitude:''
+      },
       // 表单校验
       rules: {
         parentId: [
@@ -216,13 +262,20 @@ export default {
             trigger: "blur"
           }
         ]
-      }
+      },
+      mapDialog:false,
     };
   },
   created() {
     this.getList();
   },
   methods: {
+    addMarker(e){
+            console.log(e)
+            this.form['latitude'] = e.lat;
+            this.form['longitude'] =  e.lng;
+            this.mapDialog = false
+    },
     /** 查询部门列表 */
     getList() {
       this.loading = true;
@@ -257,6 +310,11 @@ export default {
         leader: undefined,
         phone: undefined,
         email: undefined,
+        deptAddr: undefined,
+        deptAttr: undefined,
+        longitude: undefined,
+        latitude: undefined,
+        deptType: undefined,
         status: "0"
       };
       this.resetForm("form");

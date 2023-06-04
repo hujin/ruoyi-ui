@@ -47,7 +47,11 @@ export default {
         go(item){
             console.log(item)
             if (item.name == 'Lighting') {
-                location.href = `http://202.101.162.69:18900/#/login?accessToken=${Cookies.get('Admin-Token')}&type=4`
+                window.open(`http://202.101.162.69:18900/#/login?accessToken=${Cookies.get('Admin-Token')}&type=4`)
+                // location.href = `http://202.101.162.69:18900/#/login?accessToken=${Cookies.get('Admin-Token')}&type=4`
+            } else if (item.name == 'Cockpit') {
+                window.open(item.path)
+
             } else {
                 
                 this.$router.push(item.path)

@@ -13,12 +13,14 @@
                 </el-select>
             </el-form-item>
             <el-form-item label="道路" prop="road">
-                <el-input
-                    v-model="queryParams.road"
-                    placeholder="请输入导入"
-                    clearable
-                    @keyup.enter.native="handleQuery"
-                />
+                 <el-select v-model="queryParams.road" placeholder="请选择道路">
+                    <el-option
+                        v-for="dict in dict.type.sys_road"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                    />
+                </el-select>
             </el-form-item>
             <el-form-item label="状态" prop="status">
                 <el-select v-model="queryParams.status" placeholder="请选择" clearable>
@@ -27,7 +29,7 @@
                         :label="dict.label"
                         :value="dict.value"
                     /> -->
-                     <el-option label="非正常" :value="0"></el-option>
+                     <el-option label="异常" :value="0"></el-option>
                     <el-option label="正常" :value="1"></el-option>
                 </el-select>
             </el-form-item>
@@ -70,7 +72,11 @@
             <el-table-column label="设备名称" align="center"  prop="name"  />
             <el-table-column label="设备型号" align="center" prop="type" />
             
-            <el-table-column label="所在道路" align="center" prop="road" />
+            <el-table-column label="所在道路" align="center" prop="road" >
+                <template slot-scope="scope">
+                    <div>{{roadFormat(scope.row)}}</div>
+                </template>
+            </el-table-column>
             <el-table-column label="地点" align="center" prop="address" />
              <el-table-column label="布防状态" align="center" >
                 <template slot-scope="scope">
@@ -79,7 +85,7 @@
             </el-table-column>
             <el-table-column label="状态" align="center"  >
                 <template slot-scope="scope">
-                    <div>{{scope.row.status == 1 ? '正常' : '非正常'}}</div>
+                    <div>{{scope.row.status == 1 ? '正常' : '异常'}}</div>
                 </template>
             </el-table-column>
            
@@ -112,143 +118,11 @@
             :limit.sync="queryParams.pageSize"
             @pagination="getList"
         />
-        <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
-            <el-form ref="form" :model="form" :rules="rules" label-width="140px">
-                <el-row>
-                    <el-col :span="12">
-                        <el-form-item prop="name" label="设备名称">
-                            <el-input v-model="form.name" :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="road" label="所在道路">
-                            <el-input v-model="form.road" :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="type" label="设备型号">
-                            <el-input v-model="form.type" :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="address" label="详细地址">
-                            <el-input v-model="form.address" :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="uid" label="设备编号UID">
-                            <el-input v-model="form.uid" :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="roadSide" label="道路侧向">
-                            <el-input v-model="form.roadSide"  :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="status" label="状态" :disabled="true">
-                            <el-select v-model="form.status">
-                                <el-option label="非正常" :value="0"></el-option>
-                                <el-option label="正常" :value="1"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="longitude" label="经度">
-                            <el-input v-model="form.longitude" :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="enable" label="是否启用">
-                            <el-select v-model="form.enable" style="width:100%"  :disabled="state == 'view'">
-                                <el-option label="非启用" :value="0"></el-option>
-                                <el-option label="启用" :value="1"></el-option>
-                                <el-option label="移除" :value="2"></el-option>
-
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="latitude" label="维度">
-                            <el-input v-model="form.latitude"  :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="24">
-                        <el-form-item prop="installTime" label="安装时间">
-                            <el-date-picker v-model="form.installTime" 
-                                            type="date"
-                                            :disabled="state == 'view'"
-                                            value-format="yyyy-MM-dd" ></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="24" v-if="form.enable === 2">
-                        <el-form-item prop="removeTime" label="移除时间">
-                            <el-date-picker v-model="form.removeTime" 
-                                            type="date"
-                                            :disabled="state == 'view'"
-                                            value-format="yyyy-MM-dd" ></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-divider content-position="left">安装情况</el-divider>
-                <el-row>
-                    <el-col :span="12">
-                        <el-form-item prop="installDepartment" label="安装部门">
-                            <el-input v-model="form.installDepartment"  :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="联系人及联系方式">
-                            <div class="flex">
-                                <el-input v-model="form.installDepartmentName"  :disabled="state == 'view'"></el-input>
-                                <el-input v-model="form.installDepartmentPhone"  :disabled="state == 'view'"></el-input>
-
-                            </div>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="maintainDepartment" label="养护部门">
-                            <el-input v-model="form.maintainDepartment"  :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="联系人及联系方式">
-                            <div class="flex">
-                                <el-input v-model="form.maintainDepartmentName"  :disabled="state == 'view'"></el-input>
-                                <el-input v-model="form.maintainDepartmentPhone"  :disabled="state == 'view'"></el-input>
-                            </div>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item prop="propertyRightDepartment" label="产权部门">
-                            <el-input v-model="form.propertyRightDepartment"  :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="联系人及联系方式">
-                            <div class="flex">
-                                <el-input v-model="form.propertyRightDepartmentName"  :disabled="state == 'view'"></el-input>
-                                <el-input v-model="form.propertyRightDepartmentPhone"  :disabled="state == 'view'"></el-input>
-                            </div>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="24">
-                        <el-form-item label="备注:">
-                            <el-input v-model="form.remark"  :disabled="state == 'view'"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="submitForm">确 定</el-button>
-                <el-button @click="cancel">取 消</el-button>
-            </div>
-        </el-dialog>
+      
     </div>
 </template>
 <script>
 import { getDeviceList, 
-         getDeviceDetail,
          editDevice,
          addDevice,
          deleteDevice, 
@@ -256,6 +130,8 @@ import { getDeviceList,
          getDefences} from "@/api/wellLid";
 
 export default {
+    dicts: ['sys_road'],
+
     data(){
         return {
             // 遮罩层
@@ -263,8 +139,7 @@ export default {
             // 显示搜索条件
             showSearch: true,
             title:'',
-            // 是否显示弹出层
-            open: false,
+           
             // 是否展开，默认全部折叠
             isExpandAll: false,
             // 重新渲染表格状态
@@ -274,53 +149,24 @@ export default {
                 pageNum: 1,
                 pageSize: 10,
                 defencesStatus:'',
-                road: undefined,
-                status: undefined
+                road: '',
+                status: ''
             },
             ids:[],
             list:[],
             total:0,
-            // 表单参数
-            form: {
-                id:'',
-                name:'',
-                road:'',
-                type:'',
-                address:'',
-                typeName:'',
-                roadSide:'',
-                uid:'',
-                longitude:'',
-                latitude:'',
-                status:'',
-                enable:'',
-                installTime:'',
-                removeTime:'',
-                installDepartment:'',
-                installDepartmentName:'',
-                installDepartmentPhone:'',
-                maintainDepartment:'',
-                maintainDepartmentName:'',
-                maintainDepartmentPhone:'',
-                propertyRightDepartment:'',
-                propertyRightDepartmentName:'',
-                propertyRightDepartmentPhone:'',
-                remark:''
-            },
-            rules:{
-
-            },
-            state:'',
+            
             defencesOffCount:0,
             defencesOnCount:0
         }
     },
     methods:{
-        handleDownload(){
-
+        roadFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_road, row.road);
         },
+       
         handleExport(){
-            this.download('/slp/slp/management/export', {
+            this.download('/slp/slp/manhole/cover/export', {
                 status:this.queryParams.status,
                 road:this.queryParams.road,
             }, `device_${new Date().getTime()}.xlsx`) 
@@ -340,20 +186,14 @@ export default {
         },
         handleView(row){
              this.$router.push({
-                path:'/hydrops/fortify-history',
+                path:'/wellLid/fortify-history',
                 query:{
                     id:row.id
                 }
             })
            
         },
-        handleUpdate(row){
-            getDeviceDetail(row.id).then(res => {
-                this.$set(this, 'form', res.data);
-                this.state = 'update'
-                this.open = true
-            })
-        },
+       
         handleDelete(row){
             this.$modal.confirm('是否确认删除该数据吗？').then(function() {
                 return deleteDevice(row.id);

@@ -1,7 +1,31 @@
 <template>
     <div class="app-container alarm-record" style="background:#eee;height:calc(100vh - 50px)">
         <div class="record-title">UID 0124578 设备历史报警记录</div>
-        <div class="h104"></div>
+        <div class="h104">
+            <el-form :model="queryParams" size="small" :inline="true">
+                <el-form-item label="设备类型:">
+                    <span class="blod">网关</span>
+                </el-form-item>
+                <el-form-item label="当前设备状态:">
+                    <span class="blod">报警</span>
+                </el-form-item>
+                <el-form-item label="UID:">
+                    <span class="blod">12358996</span>
+                </el-form-item>
+                <el-form-item label="设备型号:">
+                    <span class="blod">1245LTEE</span>
+                </el-form-item>
+                <el-form-item label="所属道路:">
+                    <span class="blod">盈丰路</span>
+                </el-form-item>
+                <el-form-item label="所属区:">
+                    <span class="blod">萧山区</span>
+                </el-form-item>
+                <el-form-item label="道路侧向:">
+                    <span class="blod">东</span>
+                </el-form-item>
+            </el-form>
+        </div>
         <div class="c-container">
             <div class="c-content">
                 <div class="tool-row">
@@ -132,6 +156,25 @@ export default {
         background-color: #fff;
         border-radius: 4px;
         margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 0 24px;
+
+        .el-form{
+            width: 100%;
+
+            .el-form-item--small.el-form-item{
+                margin-bottom: 0;
+                margin-right: 40px;
+
+                .blod{
+                    font-size: 20px;
+                    font-weight: 400;
+                    color: rgba(0,0,0,0.9);
+                }
+            }
+        }
     }
 
     .c-container{

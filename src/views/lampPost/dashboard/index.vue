@@ -7,7 +7,14 @@
             <div class="row">
                 <div class="label" style="width:70px">道路:</div>
                 <div class="val">
-                    <el-select v-model="road"></el-select>
+                    <el-select v-model="road">
+                        <el-option
+                            v-for="dict in dict.type.sys_road"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
                 </div>
             </div>
             <div class="h100">
@@ -90,13 +97,132 @@
                 </div>
             </el-input>
         </div>
-        <el-dialog :visible.sync="visible" width="800px">
-            <template slot="title">
-                <div class="custom-title">
-                    <span class="text">气象</span>
+        <el-dialog :visible.sync="visible" custom-class="pop" width="1060px">
+            <div class="pop-wrap">
+                <div class="img">
+                    <img src="@/assets/images/lamp-post.png" alt="">
                 </div>
-            </template>
-           
+                <div class="lamp-post-dialog">
+                    <div class="lamp-post-header">
+                        <div class="tabs">
+                            <div class="tab active">灯杆</div>
+                        </div>
+                        <div class="close">
+                            <i class="el-icon-close" @click="visible = false"></i>
+                        </div>
+                    </div>
+                    <div class="lamp-post-body">
+                        <div class="info">
+                            <el-row>
+                                <el-col :span="12">
+                                    <div class="row">
+                                        <label for="">设备型号:</label>
+                                        <span>智慧灯杆</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="12">
+                                    <div class="row">
+                                        <label for="">安装时间:</label>
+                                        <span>2020-04-12</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="12">
+                                    <div class="row">
+                                        <label for="">设备UID:</label>
+                                        <span>LD000001</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="12">
+                                    <div class="row">
+                                        <label for="">使用时长:</label>
+                                        <span>127天</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="12">
+                                    <div class="row">
+                                        <label for="">是否满载:</label>
+                                        <span>100%</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="12">
+                                    <div class="row">
+                                        <label for="">是否开灯:</label>
+                                        <span>是</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="24">
+                                    <div class="row">
+                                        <label for="">详细地址:</label>
+                                        <span>杭州市萧山区盈丰路</span>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                        </div>
+                        <div class="info">
+                            <el-row>
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">养护部门:</label>
+                                        <span>城市管理养护部</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">安装部门:</label>
+                                        <span>城市管理养护部</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">产权部门:</label>
+                                        <span>钱江世纪城管委会</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">联系人:</label>
+                                        <span>王建国</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">联系人:</label>
+                                        <span>王建国</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">联系人:</label>
+                                        <span>李建华</span>
+                                    </div>
+                                </el-col>
+
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">联系电话:</label>
+                                        <span>15824150021</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">联系电话:</label>
+                                        <span>15824150021</span>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="row">
+                                        <label for="">联系电话:</label>
+                                        <span>15824150031</span>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                        </div>
+                        <div class="btn-wrap">
+                            <el-button type="primary" @click="handleView('lampPost')">查看详情</el-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </el-dialog>
     </div>
 </template>
@@ -108,8 +234,23 @@ window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
 export default {
+    dicts: ['sys_road'],
     data(){
         return {
+            tabActive:1,
+            tabList:[{
+                value:1,
+                text:'灯杆'
+            },{
+                value:1,
+                text:'灯具'
+            },{
+                value:1,
+                text:'摄像头'
+            },{
+                value:1,
+                text:'气象站'
+            }],
             keyword:'',
             map : null,
             mouseTool : null,
@@ -168,6 +309,11 @@ export default {
         }
     },
     methods:{
+        handleView(type){
+            if (type == 'lampPost'){
+                this.$router.push('/lampPost/device')
+            }
+        },
         search(){
             let keyword = this.keyword;
             let list = JSON.parse(JSON.stringify(this.markerList))
@@ -264,7 +410,8 @@ export default {
                 map:this.map
             }).on('click', (event) => {
                 console.log(event, 'marker click')
-                this.getMonitorDetailInMap(item.id)
+                this.visible = true
+                // this.getMonitorDetailInMap(item.id)
             })
         },
 
@@ -281,6 +428,131 @@ export default {
     width: 100%;
     height: 100%;
     display: flex;
+
+    .pop{
+        background: transparent;
+        box-shadow: none;
+        
+
+        .el-dialog__header{
+            display: none;
+        }
+
+        .el-dialog__body{
+            padding: 0;
+        }
+
+        .pop-wrap{
+            display: flex;
+            align-items: center;
+
+            .img{
+                width: 221px;
+                height: 684px;
+                margin-right:36px;
+
+                img{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+
+            .lamp-post-dialog{
+                width: 800px;
+                border-radius: 8px;
+                overflow: hidden;
+
+                .lamp-post-header{
+                    position: relative;
+                    height: 56px;
+                    width: 100%;
+                    background-color: #EBF1FF;
+                    box-sizing: border-box;
+                    padding-right: 100px;
+
+                    .close{
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        width: 100px;
+                        height: 56px;
+                        display: flex;
+                        justify-content: flex-end;
+                        align-items: center;
+                        font-size: 20px;
+                        box-sizing: border-box;
+                        padding-right: 20px;
+
+                        i{
+                            cursor: pointer;
+                        }
+                    }
+
+                    .tabs{
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+
+                        .tab{
+                            display: flex;
+                            align-items: center;
+                            padding: 0 28px;
+                            font-size: 20px;
+                            font-weight: 400;
+                            color: #A2A9BC;
+
+                            &.active{
+                                background-color: #fff;
+                                font-weight: 500;
+                                color: #4E86FF;
+                            }
+                        }
+                    }
+                }
+
+                .lamp-post-body{
+                    box-sizing: border-box;
+                    // padding: 24px;
+                    background-color: #fff;
+                    border-radius:0 0 8px 8px;
+
+                    .info{
+                        box-sizing: border-box;
+                        padding: 32px 40px 16px 40px;
+                        border-bottom: 1px solid #E7E7E7;
+
+                        .row{
+                            height: 24px;
+                            display: flex;
+                            align-items: center;
+                            font-size: 16px;
+                            margin-bottom: 16px;
+
+                            label{
+                                width: 70px;
+                                color: rgba(0,0,0,0.6);
+                                text-align: right;
+                            }
+
+                            span{
+                                color: rgba(0,0,0,0.9);
+                                margin-left: 10px;
+                            }
+                        }
+                    }
+
+                    .btn-wrap{
+                        box-sizing: border-box;
+                        padding: 24px;
+                        text-align: right;
+                    }
+
+                }
+            }
+        }
+
+       
+    }
 
     .map-wrap{
         position: absolute;
@@ -537,5 +809,6 @@ export default {
         }
     }
 
+    
 }
 </style>

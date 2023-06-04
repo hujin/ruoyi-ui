@@ -9,21 +9,21 @@
     <div class="right">
         <div class="info-wrap">
             <img src="../../../assets/images/environ/icon-location.png" alt="" class="icon">
-            <div class="name">{{baseInfo.road}}-气象-{{baseInfo.name}}</div>
+            <div class="name">{{baseInfo.road}}-积水-{{baseInfo.name}}</div>
             <div class="box">
               <div class="status-circle"></div>
               <div class="status-text">设备在线-{{baseInfo.enable}}</div>
             </div>
-            <div class="time">上报时间：{{new Date(baseInfo.monitorTime).Format('yyyy-MM-dd hh:mm:ss')}}</div>
+            <div class="time" v-if="baseInfo.monitorTime">上报时间：{{new Date(baseInfo.monitorTime).Format('yyyy-MM-dd hh:mm:ss')}}</div>
             
         </div>
         <div class="tab-header">
             <div class="tab-header-item" @click="handleTabItemClick(item.value)" :class="{active: item.value == active}" v-for="(item,index) in tabHeaderList" :key="index">{{item.text}}</div>
         </div>
         <div class="content">
-            <i-now :id="id" :info="info" v-if="active == 1"></i-now>
+            <i-now :id="id" v-if="active == 1"></i-now>
             <i-history  :id="id" v-if="active == 2"></i-history>
-            <i-data v-if="active == 3"></i-data>
+            <i-data :id="id" v-if="active == 3"></i-data>
             <i-history-video v-if="active == 4"></i-history-video>
         </div>
     </div>
@@ -35,9 +35,11 @@ import iNow from './component/now'
 import iData from './component/data'
 import iHistoryVideo from './component/history-video'
 
-import { getRoadRelation,getMonitorDetail,getMonitorStationDetail } from "@/api/environment";
+import { getRoadRelation,getLastReportTime } from "@/api/hydrops";
 
 export default {
+  dicts: ['sys_road','sys_roadside'],
+
   components:{
     iHistory,
     iNow,
@@ -65,30 +67,7 @@ export default {
         value:4
       }],
       active:1,
-      info:{
-        airPressure: '',
-        altitude: '',
-        createBy: '',
-        createTime: '',
-        id: '',
-        isDeleted: false,
-        monitorTime: '',
-        pm: '',
-        pmTen: '',
-        radiation: '',
-        rainfall: '',
-        relativeHumidity: '',
-        remark: '',
-        stationId: '',
-        temp: '',
-        updateBy: '',
-        updateTime: '',
-        uv: '',
-        windDirection: '',
-        windDirectionAngle: '',
-        windSpeed: '',
-        windSpeedStr: ''
-      },
+     
       baseInfo:{
         road:'',
         name:'',
@@ -104,7 +83,7 @@ export default {
           return;
         }
         this.id = data.id
-        this.baseInfo.road = data.road,
+        this.baseInfo.road = this.selectDictLabel(this.dict.type.sys_road, data.road),
         this.baseInfo.name = data.name;
 
         if (data.enable == '0') {
@@ -114,10 +93,10 @@ export default {
           
         } else if (data.enable == '2') {
           this.baseInfo.enable = '移除'
-
         }
 
-        this.getMonitorStationDetail(data.id)
+        this.getLastReportTime()
+
     },
     handleTabItemClick(val){
         if (val == this.active) {
@@ -133,17 +112,18 @@ export default {
             if (res.data) {
               res.data.forEach(item => {
                 let first = {
-                  label:item.road,
+                  label:this.selectDictLabel(this.dict.type.sys_road, item.road),
                   children:[]
                 }
 
-                item.stationList.forEach(sub => {
+                item.monitorList.forEach(sub => {
                   first.children.push({
                     label:sub.address,
                     road:sub.road,
+                    name:sub.name,
                     address:sub.address,
                     enable:sub.enable,
-                    id:sub.id
+                    id:sub.uid
                   })
                 })
 
@@ -152,7 +132,7 @@ export default {
               if (list.length > 0) {
                 let item = list[0].children[0];
                 this.id = item.id;
-                this.baseInfo.road = item.road,
+                this.baseInfo.road =  this.selectDictLabel(this.dict.type.sys_road, item.road),
                 this.baseInfo.name = item.name;
                 if (item.enable == '0') {
                   this.baseInfo.enable = '非启用'
@@ -164,33 +144,29 @@ export default {
 
                 }
                 
-                this.getMonitorStationDetail(this.id)
               }
               this.$set(this, 'treeData', list)
             }
          }
       })
     },
-    getMonitorDetail(id){
-      getMonitorDetail(id).then(res => {
+    getLastReportTime(){
+      getLastReportTime({
+        deviceUid:this.id
+      }).then(res => {
         if (res.code == 200) {
-
-        }
-      })
-    },
-    getMonitorStationDetail(id){
-      getMonitorStationDetail(id).then(res => {
-        if (res.code == 200) {
-          this.baseInfo.monitorTime = res.data.monitorTime
-          this.$set(this, 'info', res.data)
+          if (res.data) {
+            this.baseInfo.monitorTime = res.data
+          }
         }
       })
     }
+    
   },
   created(){
     if (this.$route.query.id) {
       this.id = this.$route.query.id
-      this.getMonitorStationDetail(this.id)
+      this.getLastReportTime();
     }
     this.getRoadRelation();
   }

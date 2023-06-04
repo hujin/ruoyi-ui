@@ -15,6 +15,14 @@ export function getDeviceList(params) {
     })
 }
 
+export function getVideoDeviceList(params) {
+  return request({
+    url: '/slp/slp/monitor/video/list',
+    method: 'get',
+    params
+  })
+}
+
 export function getDeviceDetail(id){
   return request({
       url:`/slp/slp/monitor/video/${id}`,
@@ -70,7 +78,7 @@ export function getRealTimeUrl(params){
 
 export function getPlayBackVideo(params){
   return request({
-    url:'/slp/slp/monitor/video/getPlayBackVideo',
+    url:`/slp/slp/monitor/video/getPlayBackVideo`,
     params,
     method:'get'
   })

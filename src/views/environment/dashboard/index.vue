@@ -211,35 +211,35 @@
                         <div class="label">风向风速：</div>
                         <div class="value">{{detail.windDirection + detail.windSpeedStr}} ({{detail.windSpeed}}米/秒)</div>
                     </div>
-                    <div class="item">
+                    <div class="item" v-if="detail.airPressure">
                         <div class="label">气  压：</div>
                         <div class="value">{{detail.airPressure}}hPa</div>
                     </div>
-                    <div class="item">
+                    <div class="item" v-if="detail.rainfall">
                         <div class="label">降雨量：</div>
                         <div class="value">{{detail.rainfall}}mm</div>
                     </div>
                 </div>
-                <div class="row third">
-                    <div class="item">
+                <div class="row third" v-if="(detail.radiation || detail.uv || detail.altitude || detail.pm || detail.pmTen)">
+                    <div class="item" v-if="detail.radiation">
                         <div class="label">辐射：</div>
                         <div class="value">{{detail.radiation}}μT</div>
                     </div>
-                    <div class="item">
+                    <div class="item" v-if="detail.uv">
                         <div class="label">紫外线：</div>
                         <div class="value">{{detail.uv}}W/㎡</div>
                     </div>
-                    <div class="item">
+                    <div class="item" v-if="detail.altitude">
                         <div class="label">海拔高度：</div>
                         <div class="value">{{detail.altitude}}m</div>
                     </div>
-                    <div class="item">
+                    <div class="item" v-if="detail.pm">
                         <div class="label">PM10：</div>
-                        <div class="value">{{detail.pm}}ug/㎡</div>
+                        <div class="value">{{detail.pm}}ug/m³</div>
                     </div>
-                    <div class="item">
+                    <div class="item" v-if="detail.pmTen">
                         <div class="label">PM2.5：</div>
-                        <div class="value" style="color:#FF9500">{{detail.pmTen}}ug/㎡</div>
+                        <div class="value" style="color:#FF9500">{{detail.pmTen}}ug/m³</div>
                     </div>
                 </div>
                 <div style="text-align:center">
@@ -352,7 +352,9 @@ export default {
 
             if (val === '') {
                 list.forEach(item => {
-                    this.addMarker(item)
+                    if (item.latitude) {
+                        this.addMarker(item)
+                    }
                 })
                 this.$set(this, 'markerList', list)
                 return;
@@ -361,7 +363,9 @@ export default {
                 return item.status === val
             })
             result.forEach(item => {
-                this.addMarker(item)
+                 if (item.latitude) {
+                        this.addMarker(item)
+                }
             })
             this.$set(this, 'markerList', result)
 
@@ -401,7 +405,10 @@ export default {
                     this.$set(this, 'markerList', list)
                     if (this.AMap) {
                         list.forEach(item => {
-                            this.addMarker(item)
+                            if (item.latitude) {
+                                this.addMarker(item)
+
+                            }
                         });
                     }
                 }

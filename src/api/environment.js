@@ -23,6 +23,14 @@ export function getDeviceList(params) {
     })
 }
 
+export function getEnvironmentDeviceList(params) {
+    return request({
+      url: '/slp/slp/management/list',
+      method: 'get',
+      params
+    })
+}
+
 export function getDeviceDetail(id){
     return request({
         url:`/slp/slp/management/${id}`,
@@ -101,7 +109,7 @@ export function getRelease(id){
 
 export function deleteRelease(ids){
     return request({
-        url:`/slp/slp/slp/release/remove/${ids}`,
+        url:`/slp/slp/release/${ids}`,
         method:'delete'
     })
 }

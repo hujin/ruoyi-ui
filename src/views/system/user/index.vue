@@ -216,6 +216,20 @@
               <treeselect v-model="form.deptId" :options="deptOptions" :show-count="true" placeholder="请选择归属部门" />
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="生日" prop="birthday">
+              <el-date-picker v-model="form.birthday" 
+                                            type="date"
+                                            placeholder="请选择生日"
+                                            style="width:100%"
+                                            value-format="yyyy-MM-dd" ></el-date-picker>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="工号" prop="jobNumber">
+              <el-input v-model="form.jobNumber" placeholder="请输入工号" maxlength="30" />
+            </el-form-item>
+          </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
@@ -521,6 +535,8 @@ export default {
         sex: undefined,
         status: "0",
         remark: undefined,
+        birthday:'',
+        jobNumber:'',
         postIds: [],
         roleIds: []
       };

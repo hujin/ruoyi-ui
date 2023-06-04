@@ -186,6 +186,7 @@ export default {
         handleView(row){
             getRuleDetail(row.id).then(res => {
                 this.$set(this, 'form', res.data);
+                this.selectChange(res.data.warningType)
                 this.state = 'view'
                 this.open = true
             })
@@ -235,7 +236,7 @@ export default {
                 return
             }
 
-            this.$modal.confirm('是否确认删除该数据吗？').then(function() {
+            this.$modal.confirm('是否确认删除该数据吗？').then(() => {
                 return removeRule(this.ids.join(','));
             }).then(() => {
                 this.getList();

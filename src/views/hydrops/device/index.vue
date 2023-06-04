@@ -8,17 +8,19 @@
                         :label="dict.label"
                         :value="dict.value"
                     /> -->
-                    <el-option label="非正常" :value="0"></el-option>
+                    <el-option label="异常" :value="0"></el-option>
                     <el-option label="正常" :value="1"></el-option>
                 </el-select>
             </el-form-item>
             <el-form-item label="道路" prop="road">
-                <el-input
-                    v-model="queryParams.road"
-                    placeholder="请输入导入"
-                    clearable
-                    @keyup.enter.native="handleQuery"
-                />
+                <el-select v-model="queryParams.road" placeholder="请选择道路">
+                    <el-option
+                        v-for="dict in dict.type.sys_road"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                    />
+                </el-select>
             </el-form-item>
             
             <el-form-item>
@@ -40,7 +42,7 @@
                     type="primary"
                     plain
                     size="mini"
-                    @click="handleAdd"
+                    @click="handleExport"
                 >批量导入</el-button>
             </el-col>
             <el-col :span="1.5">
@@ -79,7 +81,7 @@
             <el-table-column label="设备UID" align="center" prop="uid" />
             <el-table-column label="设备状态" align="center"  >
                 <template slot-scope="scope">
-                    <div>{{scope.row.status == 1 ? '正常' : '非正常'}}</div>
+                    <div>{{scope.row.status == 1 ? '正常' : '异常'}}</div>
                 </template>
             </el-table-column>
             <el-table-column label="是否启用" align="center" >
@@ -89,7 +91,20 @@
             </el-table-column>
             <el-table-column label="安装时间" align="center" prop="installTime" />
            
-            <el-table-column label="所在道路" align="center" prop="road" />
+            <el-table-column label="所在道路" align="center" prop="road" >
+                <template slot-scope="scope">
+                    <div>{{roadFormat(scope.row)}}</div>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="详细地址" align="center" prop="address" width="220px">
+                <template slot-scope="scope">
+                    <div style="display:flex;align-items:center">
+                        <div style="white-space:nowrap">{{scope.row.address}}</div>
+                        <i @click="openMap(scope.row)" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
+                    </div>
+                </template>
+            </el-table-column>
 
             <el-table-column label="GPS坐标" align="center" width="200px" >
                 <template slot-scope="scope">
@@ -99,6 +114,13 @@
                         <span>纬度:{{scope.row.latitude}}</span></div>
                 </template>
             </el-table-column>
+            <el-table-column label="道路侧向" align="center" prop="roadSide" >
+                <template slot-scope="scope">
+                    <div>{{roadSideFormat(scope.row)}}</div>
+                </template>
+                
+            </el-table-column>
+
             <el-table-column label="操作" align="center" >
                 <template slot-scope="scope">
                     <el-button
@@ -158,7 +180,14 @@
                     <el-row>
                         <el-col :span="8">
                             <el-form-item prop="road" label="所在道路">
-                                <el-input placeholder="请输入所在道路" v-model="form.road"></el-input>
+                                <el-select v-model="form.road"  :disabled="state == 'view'" style="width:100%">
+                                    <el-option
+                                        v-for="dict in dict.type.sys_road"
+                                        :key="dict.value"
+                                        :label="dict.label"
+                                        :value="dict.value"
+                                    />
+                                </el-select>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
@@ -175,9 +204,14 @@
                         </el-col>
                         <el-col :span="8">
                             <el-form-item prop="roadSide" label="道路侧向">
-                                <el-input placeholder="请输入道路侧向" v-model="form.roadSide">
-                                    
-                                </el-input>
+                               <el-select placeholder="请输入道路侧向" v-model="form.roadSide" style="width:100%">
+                                     <el-option
+                                        v-for="dict in dict.type.sys_roadside"
+                                        :key="dict.value"
+                                        :label="dict.label"
+                                        :value="dict.value"
+                                    />
+                                </el-select>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
@@ -197,7 +231,7 @@
                         <el-col :span="8">
                             <el-form-item prop="status" label="状态" :disabled="true">
                                 <el-select v-model="form.status" style="width:100%">
-                                    <el-option label="非正常" :value="0"></el-option>
+                                    <el-option label="异常" :value="0"></el-option>
                                     <el-option label="正常" :value="1"></el-option>
                                 </el-select>
                             </el-form-item>
@@ -227,6 +261,15 @@
                                             :disabled="state == 'view'"
                                             value-format="yyyy-MM-dd hh:mm:ss" ></el-date-picker>
                             </el-form-item>
+                        </el-col>
+                        <el-col :span="8" v-if="form.enable === 2">
+                            <el-form-item prop="removeTime" label="移除时间">
+                                <el-date-picker v-model="form.removeTime" 
+                                            type="date"
+                                            style="width:100%"
+                                            :disabled="state == 'view'"
+                                            value-format="yyyy-MM-dd" ></el-date-picker>
+                                </el-form-item>
                         </el-col>
                     </el-row>
                 </div>
@@ -293,6 +336,8 @@
             </div>
         </el-dialog>
         <select-map v-if="mapDialog" :visible="mapDialog" :lng="form.longitude" :lat="form.latitude" @close="mapDialog = false" @add="addMarker"></select-map>
+        <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
+    
     </div>
 </template>
 <script>
@@ -300,13 +345,16 @@ import { getDeviceList,
          getDeviceDetail,
          editDevice,
          addDevice,
-         deleteDevice } from "@/api/video";
+         deleteDevice } from "@/api/hydrops";
 
 import selectMap from '@/components/select-map/index.vue'
+import showMap from '@/components/show-map/index.vue'
 
 export default {
+    dicts: ['sys_road','sys_roadside'],
     components:{
-        selectMap
+        selectMap,
+        showMap
     },
     data(){
         return {
@@ -367,10 +415,25 @@ export default {
 
             },
             state:'',
-            mapDialog:false
+            mapDialog:false,
+            showMapState:false,
+            showMapLongitude:'',
+            showMapLatitude:''
         }
     },
     methods:{
+        openMap(row){
+            this.showMapLatitude = row.latitude
+            this.showMapLongitude = row.longitude
+
+            this.showMapState = true
+        },
+        roadSideFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_roadside, row.roadSide);
+        },
+        roadFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_road, row.road);
+        },
         getEnableName(val){
             let result = ''
 
@@ -403,7 +466,7 @@ export default {
             
         },
         handleExport(){
-            this.download('/slp/slp/monitor/video/export', {
+            this.download('/slp/slp/ponding/monitor/export', {
                 status:this.queryParams.status,
                 road:this.queryParams.road,
             }, `device_${new Date().getTime()}.xlsx`) 
@@ -424,9 +487,43 @@ export default {
             }).catch(() => {});
         },
         handleAdd(){
-            this.open = true;
-            this.state = 'add'
-            this.title = "添加设备";
+            this.$set(this, 'form', {
+                id:'',
+                name:'',
+                road:'',
+                type:'',
+                address:'',
+                typeName:'',
+                roadSide:'',
+                lightPoleId:'',
+                uid:'',
+                longitude:'',
+                latitude:'',
+                status:'',
+                enable:'',
+                installTime:'',
+                removeTime:'',
+                deviceCategory:'',
+                installDepartment:'',
+                installDepartmentName:'',
+                installDepartmentPhone:'',
+                maintainDepartment:'',
+                maintainDepartmentName:'',
+                maintainDepartmentPhone:'',
+                propertyRightDepartment:'',
+                propertyRightDepartmentName:'',
+                propertyRightDepartmentPhone:'',
+                defencesStatus:'',
+                isDeleted:'',
+                remark:''
+            })
+
+            this.$nextTick(() => {
+                this.open = true;
+                this.state = 'add'
+                this.title = "添加设备";
+            })
+            
         },
         handleQuery(){
             this.queryParams.pageNum = 1;
@@ -453,7 +550,7 @@ export default {
                 return
             }
 
-            this.$modal.confirm('是否确认删除该数据吗？').then(function() {
+            this.$modal.confirm('是否确认删除该数据吗？').then(() => {
                 return deleteDevice(this.ids.join(','));
             }).then(() => {
                 this.getList();

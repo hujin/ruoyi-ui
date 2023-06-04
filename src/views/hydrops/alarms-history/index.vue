@@ -60,7 +60,7 @@
             <el-table-column label="报警等级" align="center" prop="uid" />
             <el-table-column label="报警描述" align="center"  >
                 <template slot-scope="scope">
-                    <div>{{scope.row.status == 1 ? '正常' : '非正常'}}</div>
+                    <div>{{scope.row.status == 1 ? '正常' : '异常'}}</div>
                 </template>
             </el-table-column>
             <el-table-column label="报警时间" align="center" >
@@ -347,7 +347,7 @@ export default {
                 return
             }
 
-            this.$modal.confirm('是否确认删除该数据吗？').then(function() {
+            this.$modal.confirm('是否确认删除该数据吗？').then(() => {
                 return deleteDevice(this.ids.join(','));
             }).then(() => {
                 this.getList();

@@ -4,10 +4,17 @@
             <div id="map"></div>
         </div>
         <div class="info-wrap">
-            <div class="row">
+            <div class="row" style="justify-content: flex-start;">
                 <div class="label">道路:</div>
                 <div class="val">
-                    <el-select v-model="road"></el-select>
+                    <el-select v-model="road" @change="roadChange">
+                        <el-option
+                            v-for="dict in dict.type.sys_road"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
                 </div>
             </div>
             <div class="box-h100 gray">
@@ -120,7 +127,7 @@
                     </div>
                     <div class="item">
                         <div class="label">当前状态：</div>
-                        <div class="value" :style="{color: detail.status == 1  ? '#05A75E' : 'rgba(0,0,0,0.4)'}">{{detail.status == 1 ? '正常' : '非正常'}}</div>
+                        <div class="value" :style="{color: detail.status == 1  ? '#05A75E' : 'rgba(0,0,0,0.4)'}">{{detail.status == 1 ? '正常' : '异常'}}</div>
                     </div>
                     <div class="item">
                         <div class="label">设备型号：</div>
@@ -217,6 +224,7 @@ window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
 export default {
+    dicts: ['sys_road','sys_roadside'],
     data(){
         return {
             road:'',
@@ -279,6 +287,9 @@ export default {
         }
     },
     methods:{
+        roadChange(val){
+            this.getInfo()
+        },
         handleFilter(val, type){
             if (val === this.current) {
                 return;
@@ -380,7 +391,10 @@ export default {
             });
         },
         getInfo(){
-            getOverviewInfo().then(res => {
+            let params = {
+                road:this.road
+            }
+            getOverviewInfo(params).then(res => {
                 if (res.code == 200) {
                     this.$set(this, 'info', res.data);
                     let list = res.data.slpManholeCoverList;

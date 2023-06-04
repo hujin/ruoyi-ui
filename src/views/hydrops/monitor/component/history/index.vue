@@ -21,32 +21,32 @@
         <div class="table-wrap">
             <div class="tool">
                 <el-button type="primary">导出</el-button>
-                <div class="text">历史最大水位：220cm    历史最大排水速度：150m²/h   历史最大积水时长：15天23时23分（432h）</div>
+                <div class="text">历史最大水位：{{info.maxWaterLevel || 0}}cm    历史最大排水速度：{{info.maxWaterLevelDown}}m²/h   历史最大积水时长：{{info.maxWarningContinueTimeStr}}</div>
             </div>
             <el-table ref="tables" v-loading="loading" :data="list">
                 <el-table-column label="时间" width="220" align="center" >
                     <template slot-scope="scope">
-                        <div>{{new Date(scope.row.monitorTime).Format('yyyy-MM-dd hh:mm:ss')}}</div>
+                        <div>{{new Date(scope.row.reportTime).Format('yyyy-MM-dd hh:mm:ss')}}</div>
                     </template>
                 </el-table-column>
                 <el-table-column label="当前水位cm"  prop="temp" align="center" >
                     <template slot-scope="scope">
-                        <div>{{scope.row.temp + '°C'}}</div>
+                        <div>{{scope.row.waterLevel + 'cm'}}</div>
                     </template>
                 </el-table-column>
                 <el-table-column label="排水速度cm²/min" prop="relativeHumidity" align="center" >
                     <template slot-scope="scope">
-                        <div>{{scope.row.relativeHumidity + '%'}}</div>
+                        <div>{{scope.row.waterLevelDownSpeed + 'cm²/min'}}</div>
                     </template>
                 </el-table-column>
                 <el-table-column label="积水速度cm²/min"  prop="airPressure" align="center" >
                     <template slot-scope="scope">
-                        <div>{{scope.row.airPressure + 'hpa'}}</div>
+                        <div>{{scope.row.waterLevelUpSpeed + 'cm²/min'}}</div>
                 </template>
             </el-table-column>
             <el-table-column label="积水时长min" prop="rainfall" align="center" >
                 <template slot-scope="scope">
-                    <div>{{scope.row.rainfall + 'mm'}}</div>
+                    <div>{{scope.row.warningContinueTime + 'min'}}</div>
                 </template>
             </el-table-column>
         </el-table>
@@ -62,12 +62,15 @@
     </div>
 </template>
 <script>
-import { getMonitorList } from "@/api/environment";
+
+import { getPondingMaxHistory,getHistoryListPaged } from "@/api/hydrops";
+
 
 export default {
     props:{
         id:{
-           type: Number 
+            type: String ,
+            default:''
         }
     },
     watch:{
@@ -75,6 +78,8 @@ export default {
         id:{
             handler(val){
                 if (val) {
+                    this.getPondingMaxHistory()
+                    this.queryParams.pageNum = 1;
                     this.getList()
                 }
             },
@@ -87,12 +92,17 @@ export default {
                 pageNum: 1,
                 pageSize: 10,
                 time: [],
-                monitorTimeStart:'',
-                monitorTimeEnd:'',
+                startTime:'',
+                endTime:'',
             },
             total:0,
             list:[],
-
+            info:{
+                maxWarningContinueTime:0,
+                maxWarningContinueTimeStr:'',
+                maxWaterLevel:'',
+                maxWaterLevelDown:''
+            },
             showSearch: true,
             loading: false,
 
@@ -101,6 +111,7 @@ export default {
     methods:{
         handleQuery(){
             this.queryParams.pageNum = 1;
+            this.loading = true;
             this.getList();
         },
         resetQuery(){
@@ -111,26 +122,38 @@ export default {
             this.resetForm("queryForm");
             this.handleQuery();
         },
+        getPondingMaxHistory(){
+
+            getPondingMaxHistory({
+                deviceUid:this.id
+            }).then(res => {
+                if (res.code == 200) {
+                   if (res.data) {
+                    this.$set(this, 'info', res.data)
+                   }
+                }
+            })
+        },
         getList(){
             let parmas = {
-                stationId:this.id,
+                deviceUid:this.id,
                 pageNum:this.queryParams.pageNum,
                 pageSize:this.queryParams.pageSize,
-                monitorTimeStart:'',
-                monitorTimeEnd:''
+                startTime:'',
+                endTime:''
             }
 
             if (this.queryParams.time[0]) {
-                parmas.monitorTimeStart = new Date(this.queryParams.time[0]).getTime()
-                parmas.monitorTimeEnd = new Date(this.queryParams.time[1]).getTime()
+                parmas.startTime = new Date(this.queryParams.time[0]).getTime()
+                parmas.endTime = new Date(this.queryParams.time[1]).getTime()
             }
-
-
-
-            getMonitorList(parmas).then(res => {
+            getHistoryListPaged(parmas).then(res => {
+                this.loading = false
                 if (res.code == 200) {
-                    this.$set(this, 'list', res.data.rows);
-                    this.total  = res.data.total
+                    if (res.data) {
+                        this.total = res.data.total
+                        this.$set(this, 'list', res.data.rows)
+                    }
                 }
             })
         }

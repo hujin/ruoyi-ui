@@ -10,7 +10,7 @@
         <div class="info-wrap">
             <img src="../../../assets/images/hydrops/icon-location.png" alt="" class="icon">
             <div class="name">{{baseInfo.road}}-井盖-{{baseInfo.name}}</div>
-            <div class="box">
+            <div class="box" :class="{red: baseInfo.enable != '启用'}">
               <div class="status-circle"></div>
               <div class="status-text">设备在线-{{baseInfo.enable}}</div>
             </div>
@@ -96,7 +96,7 @@ import { getRoadRelation,getMonitorDetail,getMonitorList } from "@/api/wellLid";
 
 
 export default {
-  
+  dicts: ['sys_road','sys_roadside'],
   data() {
     return {
       defaultProps: {
@@ -148,8 +148,8 @@ export default {
           return;
         }
         this.id = data.id
-        this.baseInfo.road = data.road,
-        this.baseInfo.name = data.name;
+        this.baseInfo.road = this.selectDictLabel(this.dict.type.sys_road, data.road),
+        this.baseInfo.name = data.label;
 
         if (data.enable == '0') {
           this.baseInfo.enable = '非启用'
@@ -191,14 +191,14 @@ export default {
             if (res.data) {
               res.data.forEach(item => {
                 let first = {
-                  label:item.road,
+                  label:this.selectDictLabel(this.dict.type.sys_road, item.road),
                   children:[]
                 }
 
                 item.manholeCoverList.forEach(sub => {
                   first.children.push({
                     label:sub.address,
-                    road:sub.road,
+                    road: sub.road,
                     address:sub.address,
                     enable:sub.enable,
                     id:sub.id
@@ -210,8 +210,8 @@ export default {
               if (list.length > 0) {
                 let item = list[0].children[0];
                 this.id = item.id;
-                this.baseInfo.road = item.road,
-                this.baseInfo.name = item.name;
+                this.baseInfo.road =  this.selectDictLabel(this.dict.type.sys_road, item.road)
+                this.baseInfo.name = item.label;
                 if (item.enable == '0') {
                   this.baseInfo.enable = '非启用'
                 } else if (item.enable == '1') {

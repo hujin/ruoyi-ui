@@ -1,16 +1,25 @@
 <template>
     <div class="app-container alarms">
         <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
-            <el-form-item label="报警类型" prop="status">
-                <el-input v-model="queryParams.warningType" placeholder="报警类型" clearable></el-input>
+            <el-form-item label="报警类型" prop="warningType">
+                <el-select v-model="queryParams.warningType" placeholder="报警类型" clearable>
+                    <el-option
+                        v-for="dict in dict.type.sys_welllid_warning_type"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                    />
+                </el-select>
             </el-form-item>
             <el-form-item label="道路" prop="road">
-                <el-input
-                    v-model="queryParams.road"
-                    placeholder="请输入导入"
-                    clearable
-                    @keyup.enter.native="handleQuery"
-                />
+                <el-select v-model="queryParams.road" placeholder="请选择道路">
+                    <el-option
+                        v-for="dict in dict.type.sys_road"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                    />
+                </el-select>
             </el-form-item>
             <el-form-item label="井盖编号" prop="manholeCoverUid">
                 <el-input
@@ -53,14 +62,19 @@
             </div>
         </el-row>
         <el-table ref="tables" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
-            <el-table-column label="告警时间" align="center"  prop="name"  />
-            <el-table-column label="告警接触时间" align="center" prop="type" />
-            <el-table-column label="井盖编号" align="center" prop="uid" />
-            <el-table-column label="报警时长" align="center"  ></el-table-column>
-            <el-table-column label="所在道路" align="center" prop="installTime" />
-            <el-table-column label="地点" align="center" prop="road" />
-            <el-table-column label="报警类型" align="center" prop="address" />
-            <el-table-column label="报警内容" align="center" prop="roadSide" />
+            <el-table-column type="selection" width="50" align="center" />
+            <el-table-column label="告警时间" align="center"  prop="warningTimeStr"  />
+            <el-table-column label="告警解除时间" align="center" prop="warningCancelTimeStr" />
+            <el-table-column label="井盖编号" align="center" prop="manholeCoverName" />
+            <el-table-column label="报警时长" align="center"  prop="warningDuration"></el-table-column>
+            <el-table-column label="所在道路" align="center" prop="road" />
+            <el-table-column label="地点" align="center" prop="address" />
+            <el-table-column label="报警类型" align="center" prop="warningType" >
+                <template slot-scope="scope">
+                    <div>{{getWarningTypeCn(scope.row.warningType)}}</div>
+                </template>
+            </el-table-column>
+            <el-table-column label="报警内容" align="center" prop="warningContent" />
             <!-- <el-table-column label="操作" align="center" >
                 <template slot-scope="scope">
                     
@@ -90,6 +104,7 @@
 import { getDeviceWarningList,getDeviceWarningCount,removeWarning } from "@/api/wellLid";
 
 export default {
+    dicts: ['sys_road','sys_roadside','sys_welllid_warning_type'],
     data(){
         return {
             // 遮罩层
@@ -107,7 +122,7 @@ export default {
             queryParams: {
                 pageNum: 1,
                 pageSize: 10,
-                road: undefined,
+                road: '',
                 manholeCoverId: '',
                 manholeCoverUid: '',
                 warningType:''
@@ -121,19 +136,40 @@ export default {
         }
     },
     methods:{
-        handleDownload(){
-
+        roadFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_road, row.road);
         },
+        getWarningTypeCn(type){
+            let result = '';
+
+            if(type ==  'OVERFLOW') {
+                result =  "满溢告警"
+            }
+
+            if(type ==  'OPEN') {
+                result =  "打开告警"
+            }
+
+            if(type ==  'OFFLINE') {
+                result =  "离线告警"
+            }
+
+            if(type ==  'LOSE') {
+                result =  "丢失告警"
+            }
+
+            if(type ==  'LEAN') {
+                result =  "偏移告警"
+            }
+            return result
+        },
+       
         handleExport(){
-            this.download('/slp/slp/management/export', {
-                status:this.queryParams.status,
+            this.download('/slp/slp/cover/warning/export', {
+                status:this.queryParams.warningType,
                 road:this.queryParams.road,
             }, `device_${new Date().getTime()}.xlsx`) 
-        },
-        handleView(row){
-            
-        },
-        
+        },    
         handleDelete(row){
             this.$modal.confirm('是否确认删除该数据吗？').then(function() {
                 return removeWarning(row.id);
@@ -148,12 +184,14 @@ export default {
                 return
             }
 
-            this.$modal.confirm('是否确认删除该数据吗？').then(function() {
+            this.$modal.confirm('是否确认删除该数据吗？').then(()=> {
                 return removeWarning(this.ids.join(','));
             }).then(() => {
                 this.getList();
                 this.$modal.msgSuccess("删除成功");
-            }).catch(() => {});
+            }).catch((e) => {
+                console.log(e)
+            });
         },
         handleAdd(){
             this.open = true;

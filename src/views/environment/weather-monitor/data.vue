@@ -34,6 +34,7 @@ import iNow from './component/now'
 import { getRoadRelation,getMonitorDetail,getMonitorStationDetail } from "@/api/environment";
 
 export default {
+  dicts: ['sys_road','sys_roadside'],
   components:{
     iHistory,
     iNow
@@ -92,7 +93,7 @@ export default {
           return;
         }
         this.id = data.id
-        this.baseInfo.road = data.road,
+        this.baseInfo.road = this.selectDictLabel(this.dict.type.sys_road, data.road),
         this.baseInfo.name = data.name;
 
         if (data.enable == '0') {
@@ -121,7 +122,7 @@ export default {
             if (res.data) {
               res.data.forEach(item => {
                 let first = {
-                  label:item.road,
+                  label: this.selectDictLabel(this.dict.type.sys_road, item.road),
                   children:[]
                 }
 
@@ -140,7 +141,7 @@ export default {
               if (list.length > 0) {
                 let item = list[0].children[0];
                 this.id = item.id;
-                this.baseInfo.road = item.road,
+                this.baseInfo.road = this.selectDictLabel(this.dict.type.sys_road, item.road),
                 this.baseInfo.name = item.name;
                 if (item.enable == '0') {
                   this.baseInfo.enable = '非启用'

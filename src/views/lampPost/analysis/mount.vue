@@ -1,7 +1,44 @@
 <template>
     <div class="app-container analysis-mount" style="background:#eee;height:calc(100vh - 50px)">
         <div class="page-title">挂载统计</div>
-        <div class="h104"></div>
+        <div class="h104">
+            <el-form :model="queryForm" size="small" :inline="true">
+                <el-form-item label="时间" prop="time">
+                    <el-date-picker v-model="queryForm.time" 
+                                    type="daterange"
+                                    placeholder="请选择安装时间"
+                                    style="width:100%"
+                                    value-format="yyyy-MM-dd" ></el-date-picker>
+                </el-form-item>
+                <el-form-item prop="date_type">
+                    <el-radio-group v-model="queryForm.date_type" >
+                        <el-radio-button label="本日"></el-radio-button>
+                        <el-radio-button label="本月"></el-radio-button>
+                        <el-radio-button label="本年"></el-radio-button>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="道路" prop="road">
+                    <el-select v-model="queryForm.road" placeholder="请选择道路" clearable>
+                        <el-option
+                            v-for="dict in dict.type.sys_road"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="设备分类" prop="type">
+                    <el-select v-model="queryForm.type" placeholder="请选择设备分类" clearable>
+                        <el-option
+                            v-for="dict in dict.type.sys_device_type"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
+                </el-form-item>
+            </el-form>
+        </div>
         <div class="content">
             <div class="left">
                 <div class="map" id="map"></div>
@@ -10,13 +47,14 @@
                 <div class="h310">
                     <div class="row">
                         <div class="label">总挂载率:</div>
-                        <div class="val">99.5%</div>
+                        <div class="val">{{totalMountingPercent}}%</div>
                     </div>
                     <div class="list">
-                        <div class="item" v-for="(item,index) in list" :key="index">
-                            <div class="item-name">A道路设备挂载率</div>
-                            <div class="item-value">99%</div>
+                        <div class="item" v-for="(item, index) in list" :key="index">
+                            <div class="item-name">{{item.road}}设备挂载率</div>
+                            <div class="item-value">{{item.mountingPercent || 0}}%</div>
                         </div>
+                        
                     </div>
                 </div>
                 <div class="h399">
@@ -38,7 +76,10 @@ window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
 
+import { getDeviceMounting } from "@/api/lampPost";
+
 export default {
+    dicts: ['sys_road','sys_roadside','sys_device_type'],
     data(){
         return {
             chart:null,
@@ -49,9 +90,29 @@ export default {
             auto : null,
             placeSearch : null, 
             AMap:null,
+            queryForm:{
+                time:[],
+                road:'',
+                type:'',
+                date_type:'本日'
+            },
+            list:[],
+            totalMountingPercent:''
+        }
+    },
+    watch:{
+        queryForm:{
+            handler(){
+                this.getDeviceMounting()
+            },
+            deep:true,
+            immediate:false
         }
     },
     methods:{
+        roadFormat(road) {
+            return this.selectDictLabel(this.dict.type.sys_road, road);
+        },
         initChart(){
             var el = this.$refs['chart1'];
             this.chart = echarts.init(el);
@@ -91,25 +152,84 @@ export default {
             AMapLoader.load({
                 "key": "df32d1c57071a49dc07d45dbaad7cdbd", 
                 "version": "1.4.15",   // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-                "plugins": ['AMap.Icon','AMap.Marker'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+                "plugins": ['AMap.Icon','AMap.Marker', 'AMap.Heatmap'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
             }).then((AMap)=>{
                 // 初始化地图
                 this.AMap = AMap;
                 this.map = new AMap.Map('map',{
                     viewMode : "2D",  //  是否为3D地图模式
                     zoom : 13,   // 初始化地图级别
-                    center : [120.252635, 30.236056], //中心点坐标  郑州
+                    center : [120.252635, 30.236056], //中心点坐标  
                     resizeEnable: true
                 });
+
+                this.getDeviceMounting();
             }).catch(e => {
                 console.log(e);
             });
         },
+        getDeviceMounting(){
+            let params = {
+                beginTime:'',
+                endTime:'',
+                timeType:'',
+                road: this.queryForm.road,
+                type: this.queryForm.type,
+            }
+
+            if (this.datetype == '本日') {
+                params.timeType = 1
+            }
+
+            if (this.datetype == '本月') {
+                params.timeType = 2
+            }
+
+            if (this.datetype == '本年') {
+                params.timeType = 3
+            }
+
+            if (this.queryForm.time.length > 0) {
+                params.beginTime = new Date(this.queryForm.time[0]).Format('yyyy-MM-dd')
+                params.endTime = new Date(this.queryForm.time[1]).Format('yyyy-MM-dd')
+            }
+
+
+            getDeviceMounting(params).then(res => {
+                if (res.code == 200) {
+                    if (res.data.slpPoleComprehensiveInfoVo) {
+                        var heatmap = new this.AMap.Heatmap(this.map, {
+                            radius:25,
+                            opacity: [0, 0.8],
+                            
+                        })
+
+                        heatmap.setDataSet({
+                            data:res.data.slpPoleComprehensiveInfoVo.slpHeatMapList
+                        })
+                    }
+
+                    if (res.data.slpMountingPercentVoList) {
+                        res.data.slpMountingPercentVoList.forEach(item => {
+                            item['road_id'] = item.road
+
+                            item.road = this.roadFormat(item.road)
+                        })
+
+                        this.$set(this, 'list', res.data.slpMountingPercentVoList)
+                    }
+
+                    this.totalMountingPercent = res.data.totalMountingPercent
+                    
+                }
+            })
+        }
     },
     mounted(){
-        for (let i = 0; i < 20; i++) {
-            this.list.push({})
-        }
+        // for (let i = 0; i < 20; i++) {
+        //     this.list.push({})
+        // }
+
         this.initChart()
         this.initMap()
     }
@@ -134,6 +254,18 @@ export default {
         background-color: #fff;
         border-radius: 4px;
         margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 0 24px;
+
+        .el-form{
+            width: 100%;
+
+            .el-form-item--small.el-form-item{
+                margin-bottom: 0;
+            }
+        }
     }
 
     .content{

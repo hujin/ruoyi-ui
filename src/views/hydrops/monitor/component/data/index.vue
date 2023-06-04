@@ -18,94 +18,100 @@
         </div>
         <div class="h286">
             <div class="tool">
-                <el-radio-group>
-                    <el-radio label="1">同比</el-radio>
-                    <el-radio label="2">环比</el-radio>
+                <el-radio-group v-model="type">
+                    <el-radio :label="1">同比</el-radio>
+                    <el-radio :label="2">环比</el-radio>
                 </el-radio-group>
             </div>
             <div class="info-list">
                 <div class="info-item">
                     <div class="label">平均水位高度</div>
                     <div class="val">
-                        <div class="num">15</div>
+                        <div class="num">{{info.avgWaterLevel || 0}}</div>
                         <div class="symbol">cm</div>
                     </div>
                     <div class="percent">
                         <div class="r">
                             <div class="text">同比上升</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.waterLevelCompare.yoy : info.waterLevelCompare.qoq}}%</div>
                         </div>
                         <div class="r">
                             <div class="text">同比增幅</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.waterLevelCompare.yoyIncr : info.waterLevelCompare.qoqIncr}}%</div>
                         </div>
                     </div>
                 </div>
                 <div class="info-item">
                     <div class="label">平均排水速度</div>
                     <div class="val">
-                        <div class="num">14</div>
-                        <div class="symbol">m³/s</div>
+                        <div class="num">{{info.avgWaterLevelDown || 0}}</div>
+                        <div class="symbol">cm/h</div>
                     </div>
                     <div class="percent">
                         <div class="r">
                             <div class="text">同比上升</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.waterLevelDownCompare.yoy : info.waterLevelDownCompare.qoq}}%</div>
                         </div>
                         <div class="r">
                             <div class="text">同比增幅</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.waterLevelDownCompare.yoyIncr : info.waterLevelDownCompare.qoqIncr}}%</div>
                         </div>
                     </div>
                 </div>
                 <div class="info-item">
                     <div class="label">平均积水速度</div>
                     <div class="val">
-                        <div class="num">25</div>
-                        <div class="symbol">m³/s</div>
+                        <div class="num">{{info.avgWaterLevelUp || 0}}</div>
+                        <div class="symbol">cm/h</div>
                     </div>
                     <div class="percent">
                         <div class="r">
                             <div class="text">同比上升</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.waterLevelUpCompare.yoy : info.waterLevelUpCompare.qoq}}%</div>
+
                         </div>
                         <div class="r">
                             <div class="text">同比增幅</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.waterLevelUpCompare.yoyIncr : info.waterLevelUpCompare.qoqIncr}}%</div>
+
                         </div>
                     </div>
                 </div>
                 <div class="info-item">
                     <div class="label">累计积水时长</div>
                     <div class="val">
-                        <div class="num">152</div>
+                        <div class="num">{{info.totalWarningTime}}</div>
                         <div class="symbol">h</div>
                     </div>
                     <div class="percent">
                         <div class="r">
                             <div class="text">同比上升</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.warningTimeCompare.yoy : info.warningTimeCompare.qoq}}%</div>
+
                         </div>
                         <div class="r">
                             <div class="text">同比增幅</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.warningTimeCompare.yoyIncr : info.warningTimeCompare.qoqIncr}}%</div>
+
                         </div>
                     </div>
                 </div>
                 <div class="info-item">
                     <div class="label">报警次数</div>
                     <div class="val">
-                        <div class="num">32</div>
+                        <div class="num">{{info.warningTimes}}</div>
                         <div class="symbol">次</div>
                     </div>
                     <div class="percent">
                         <div class="r">
                             <div class="text">同比上升</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.warningTimesCompare.yoy : info.warningTimesCompare.qoq}}%</div>
+
                         </div>
                         <div class="r">
                             <div class="text">同比增幅</div>
-                            <div class="text">5%</div>
+                            <div class="text">{{type == 1 ? info.warningTimesCompare.yoyIncr : info.warningTimesCompare.qoqIncr}}%</div>
+
                         </div>
                     </div>
                 </div>
@@ -121,8 +127,19 @@
                 </div>
             </div>
             <div class="section-item">
-                <div class="section-item-wrap">
+                <div class="section-item-wrap" style="position:relative">
                     <div class="title">报警统计</div>
+                    <div class="state-total-wrap">
+                        <div class="total-item">
+                            <span class="text">共</span>
+                            <span class="big">{{chart2_total}}</span>
+                            <span class="text">次报警</span>
+                        </div>
+                        <div class="total-item">
+                            <span class="text">同比上升</span>
+                            <span class="num">{{chart2_yoy}}%</span>
+                        </div>
+                    </div>
                     <div class="chart">
                         <div id="chart2"  ref="chart2" ></div>
                     </div>
@@ -170,47 +187,126 @@
 </template>
 <script>
 import * as echarts from 'echarts'
+import { getPondingOverviewWithCompare,
+         getPondingStat,
+         pondingForecastVo,
+         getWarningStatYoy } from "@/api/hydrops";
+
 
 export default {
+    props:{
+        id:{
+            type: String ,
+            default:''
+        }
+    },
+    watch:{
+       
+        id:{
+            handler(val){
+                if (val) {
+                    let now = new Date()
+                    let before = new Date().setMonth(new Date().getMonth() - 1)
+                    this.queryParams.time[0] = new Date(before);
+                    this.queryParams.time[1] =  now
+                    this.getPondingOverviewWithCompare();
+                    this.getPondingStat()
+                    this.pondingForecastVo()
+                    this.getWarningStatYoy()
+                }
+            },
+            immediate:true
+        }
+    },
     data(){
         return {
-           queryParams: {
+            type:1,
+            queryParams: {
                 pageNum: 1,
                 pageSize: 10,
                 time: [],
                 monitorTimeStart:'',
                 monitorTimeEnd:'',
             },
-            total:0,
-            list:[],
-
+            info:{
+                avgWaterLevel:0,
+                avgWaterLevelDown:0,
+                avgWaterLevelUp:0,
+                totalWarningTime:0,
+                warningTimes:0,
+                warningTimeCompare:{
+                    qoq:0,
+                    qoqIncr:0,
+                    yoy:0,
+                    yoyIncr:0
+                },
+                warningTimesCompare:{
+                    qoq:0,
+                    qoqIncr:0,
+                    yoy:0,
+                    yoyIncr:0
+                },
+                waterLevelCompare:{
+                    qoq:0,
+                    qoqIncr:0,
+                    yoy:0,
+                    yoyIncr:0
+                },
+                waterLevelDownCompare:{
+                    qoq:0,
+                    qoqIncr:0,
+                    yoy:0,
+                    yoyIncr:0
+                },
+                waterLevelUpCompare:{
+                    qoq:0,
+                    qoqIncr:0,
+                    yoy:0,
+                    yoyIncr:0
+                }
+            },
             showSearch: true,
             loading: false,
             chart1:null,
+            chart1_xAxis:[],
+            chart1_yAxis:[],
             chart2:null,
+            chart2_xAxis:[],
+            chart2_yAxis:[],
+            chart2_total:'',
+            chart2_yoy:'',
             chart3:null,
+            chart3_xAxis:[],
+            chart3_yAxis:[],
             chart4:null,
+            chart4_xAxis:[],
+            chart4_yAxis:[],
             chart5:null,
-            chart6:null
+            chart5_xAxis:[],
+            chart5_yAxis:[],
+            chart6:null,
+            chart6_xAxis:[],
+            chart6_yAxis:[],
         }
     },
     methods:{
         handleQuery(){},
-        resetQuery(){},
+        resetQuery(){
+            let now = new Date()
+            let before = new Date().setMonth(new Date().getMonth() - 1)
+            this.queryParams.time[0] = new Date(before);
+            this.queryParams.time[1] =  now
+        },
         initChart1(){
             var el = this.$refs['chart1'];
             this.chart1 = echarts.init(el);
             let options = {
                 color:['#6395F9','#6ADCAF','#F7C32D'],
-                // tooltip: {
-                //     trigger: 'axis',
-                //     axisPointer: {
-                //         type: 'cross',
-                //         crossStyle: {
-                //             color: '#999'
-                //         }
-                //     }
-                // },
+                tooltip: {
+                    show:true,
+                    trigger:'axis',
+                    renderMode:'richText'                
+                },
                 legend: {
                     left: 'right',
                     top: 0,
@@ -219,13 +315,13 @@ export default {
                 },
 
                 grid:{
-                    bottom:35,
+                    bottom:20,
                     right:10,
                 },
                 xAxis: [
                     {
                         type: 'category',
-                        data: ['03-01', '03-02', '03-03', '03-04', '03-05'],
+                        data: this.chart1_xAxis,
                         axisPointer: {
                             type: 'shadow'
                         }
@@ -247,7 +343,7 @@ export default {
                             return value + ' cm';
                         }
                     },
-                    data: [22, 33, 25, 37, 29]
+                    data: this.chart1_yAxis[0]
                 },{
                     name:'最高水位',
                     type: 'bar',
@@ -256,7 +352,7 @@ export default {
                             return value + ' cm';
                         }
                     },
-                    data: [23, 32, 27, 33, 24]
+                    data: this.chart1_yAxis[1]
                 },{
                     name:'平均水位',
                     type: 'line',
@@ -265,7 +361,7 @@ export default {
                             return value + ' cm';
                         }
                     },
-                    data: [22.5,32.5,26,35,26.5]
+                    data: this.chart1_yAxis[2]
                 }]
             }
 
@@ -290,7 +386,7 @@ export default {
                 xAxis: [
                     {
                         type: 'category',
-                        data: ['03-01', '03-02', '03-03', '03-04', '03-05', '03-06', '03-07'],
+                        data: this.chart2_xAxis,
                         axisPointer: {
                             type: 'shadow'
                         }
@@ -306,17 +402,17 @@ export default {
                     name:'一级报警',
                     type:'bar',
                     stack:'ad',
-                    data:[22, 33, 44, 32, 29, 35, 11]
+                    data:this.chart2_yAxis[2]
                 },{
                     name:'二级报警',
                     type:'bar',
                     stack:'ad',
-                    data:[22, 33, 44, 32, 29, 35, 11]
+                    data:this.chart2_yAxis[1]
                 },{
                     name:'三级报警',
                     type:'bar',
                     stack:'ad',
-                    data:[22, 33, 44, 32, 29, 35, 11]
+                    data:this.chart2_yAxis[0]
                 }]
             }
 
@@ -328,6 +424,10 @@ export default {
             this.chart3 = echarts.init(el)
             let options = {
                 color:['#6395F9'],
+                tooltip: {
+                    trigger:'axis',
+                    renderMode:'richText'                
+                },
                 legend: {
                     left: 'right',
                     top: 0,
@@ -341,7 +441,7 @@ export default {
                 xAxis: [
                     {
                         type: 'category',
-                        data: ['03-01', '03-02', '03-03', '03-04', '03-05', '03-06', '03-07'],
+                        data: this.chart3_xAxis,
                         axisPointer: {
                             type: 'shadow'
                         }
@@ -350,11 +450,18 @@ export default {
                 yAxis: [
                     {
                         type: 'value',
-                        
+                        axisLabel: {
+                            formatter: '{value} cm'
+                        }
                     }
                 ],
                 series: [{
-                    data: [22, 33, 44, 934, 1290, 1330, 1320 ],
+                    data: this.chart3_yAxis,
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return value + ' cm';
+                        }
+                    },
                     type: 'line',
                     smooth: true,
                     name:'积水速度'
@@ -368,6 +475,10 @@ export default {
             this.chart4 = echarts.init(el)
             let options = {
                 color:['#6395F9'],
+                tooltip: {
+                    trigger:'axis',
+                    renderMode:'richText'                
+                },
                 legend: {
                     left: 'right',
                     top: 0,
@@ -381,7 +492,7 @@ export default {
                 xAxis: [
                     {
                         type: 'category',
-                        data: ['03-01', '03-02', '03-03', '03-04', '03-05', '03-06', '03-07'],
+                        data: this.chart4_xAxis,
                         axisPointer: {
                             type: 'shadow'
                         }
@@ -390,11 +501,18 @@ export default {
                 yAxis: [
                     {
                         type: 'value',
-                        
+                        axisLabel: {
+                            formatter: '{value} cm'
+                        }
                     }
                 ],
                 series: [{
-                    data: [22, 33, 44, 934, 1290, 1330, 1320 ],
+                    data: this.chart4_yAxis,
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return value + ' cm';
+                        }
+                    },
                     type: 'line',
                     smooth: true,
                     name:'排水速度'
@@ -408,6 +526,9 @@ export default {
             this.chart5 = echarts.init(el)
             let options = {
                 color:['#F7C32D','#409EFE'],
+                tooltip: {
+                    renderMode:'richText'                
+                },
                 legend: {
                     left: 'right',
                     top: 0,
@@ -421,7 +542,7 @@ export default {
                 xAxis: [
                     {
                         type: 'category',
-                        data: ['03-01', '03-02', '03-03', '03-04', '03-05', '03-06', '03-07'],
+                        data: this.chart5_xAxis,
                         axisPointer: {
                             type: 'shadow'
                         }
@@ -434,15 +555,25 @@ export default {
                     }
                 ],
                 series: [{
-                    data: [22, 33, 44, 934, null, null, null ],
+                    data: this.chart5_yAxis[0],
                     type: 'line',
                     smooth: true,
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return (value || 0) + ' cm';
+                        }
+                    },
                     name:'当前水位'
                 },{
-                    data: [null, null, null, 934, 1290, 1330, 1320  ],
+                    data: this.chart5_yAxis[1],
                     type: 'line',
                     smooth: true,
                     name:'未来水位',
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return (value || 0) + ' cm';
+                        }
+                    },
                     lineStyle: {
                         type: 'dashed'
                     },
@@ -456,6 +587,9 @@ export default {
             this.chart6 = echarts.init(el)
             let options = {
                 color:['#F7C32D','#409EFE'],
+                tooltip: {
+                    renderMode:'richText'                
+                },
                 legend: {
                     left: 'right',
                     top: 0,
@@ -470,7 +604,7 @@ export default {
                 xAxis: [
                     {
                         type: 'category',
-                        data: ['03-01', '03-02', '03-03', '03-04', '03-05', '03-06', '03-07'],
+                        data: this.chart6_xAxis,
                         axisPointer: {
                             type: 'shadow'
                         }
@@ -483,32 +617,250 @@ export default {
                     }
                 ],
                 series: [{
-                    data: [22, 33, 44, 934, null, null, null ],
+                    data: this.chart6_yAxis[0],
                     type: 'line',
                     smooth: true,
-                    name:'当前水位'
+                    name:'当前水位',
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return (value || 0) + ' cm';
+                        }
+                    },
                 },{
-                    data: [null, null, null, 934, 1290, 1330, 1320  ],
+                    data: this.chart6_yAxis[1],
                     type: 'line',
                     smooth: true,
                     name:'未来水位',
                     lineStyle: {
                         type: 'dashed'
                     },
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return (value || 0) + ' cm';
+                        }
+                    },
                 }]
             }
 
             this.chart6.setOption(options)
+        },
+        getPondingOverviewWithCompare(){
+            let params = {
+                deviceUid:this.id,
+                startTime:'',
+                endTime:''
+            }
+
+            if (this.queryParams.time[0]) {
+                params.startTime = new Date(this.queryParams.time[0]).getTime()
+                params.endTime = new Date(this.queryParams.time[1]).getTime()
+            }
+            getPondingOverviewWithCompare(params).then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        this.$set(this, 'info', res.data)
+                    }
+                }
+
+            })
+        },
+        getPondingStat(){
+            let params = {
+                deviceUid:this.id,
+                startTime:'',
+                endTime:''
+            }
+
+            if (this.queryParams.time[0]) {
+                params.startTime = new Date(this.queryParams.time[0]).getTime()
+                params.endTime = new Date(this.queryParams.time[1]).getTime()
+            }
+            getPondingStat(params).then(res => {
+                if (res.code == 200){
+                    if (res.data) {
+                        if (res.data.waterLevelStatVoList) {
+                            let chart1_xAxis = []
+                            let chart1_yAxis = [[],[],[]]
+                            res.data.waterLevelStatVoList.forEach(item => {
+                                chart1_xAxis.push(item.timeStr)
+                                chart1_yAxis[0].push(item.lowest)
+                                chart1_yAxis[1].push(item.highest)
+                                chart1_yAxis[2].push(item.avg)
+
+                            })
+
+                            this.$set(this, 'chart1_xAxis', chart1_xAxis)
+                            this.$set(this, 'chart1_yAxis', chart1_yAxis)
+
+                            this.$nextTick(() => {
+                                this.initChart1()
+                            })
+                        }
+
+                        if (res.data.waterUpStatVoList) {
+                            let chart3_xAxis = []
+                            let chart3_yAxis = []
+
+                            res.data.waterUpStatVoList.forEach(item => {
+                                chart3_xAxis.push(item.timeStr)
+                                chart3_yAxis.push(item.changeValue)
+                            })
+
+
+                            this.$set(this, 'chart3_xAxis', chart3_xAxis)
+                            this.$set(this, 'chart3_yAxis', chart3_yAxis)
+
+                            this.$nextTick(() => {
+                                this.initChart3()
+                            })
+                        }
+
+                        if (res.data.waterDownStatVoList) {
+                            let chart4_xAxis = []
+                            let chart4_yAxis = []
+
+                            res.data.waterDownStatVoList.forEach(item => {
+                                chart4_xAxis.push(item.timeStr)
+                                chart4_yAxis.push(item.changeValue)
+                            })
+
+
+                            this.$set(this, 'chart4_xAxis', chart4_xAxis)
+                            this.$set(this, 'chart4_yAxis', chart4_yAxis)
+
+                            this.$nextTick(() => {
+                                this.initChart4()
+                            })
+                        }
+                    }
+                }
+            })
+        },
+        pondingForecastVo(){
+            let params = {
+                deviceUid:this.id,
+                startTime:'',
+                endTime:''
+            }
+
+            if (this.queryParams.time[0]) {
+                params.startTime = new Date(this.queryParams.time[0]).getTime()
+                params.endTime = new Date(this.queryParams.time[1]).getTime()
+            }
+
+            pondingForecastVo(params).then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        if (res.data.waterLevelForecastList) {
+                            let chart5_xAxis = [];
+                            let chart5_yAxis = [[],[]];
+
+                            res.data.waterLevelForecastList.forEach((item,index) => {
+                                chart5_xAxis.push(item.timeStr)
+                                if (item.current) {
+                                    chart5_yAxis[0].push(item.waterLevel)
+                                    chart5_yAxis[1].push(null)
+                                } else {
+                                    chart5_yAxis[1].push(item.waterLevel)
+                                    if (index > 0) {
+                                        if (res.data.waterLevelForecastList[index - 1].current) {
+                                            chart5_yAxis[0].push(item.waterLevel)
+                                        } else {
+                                            chart5_yAxis[0].push(null)
+
+                                        }
+                                    } else {
+                                        chart5_yAxis[0].push(null)
+                                    }
+                                }
+                            })
+
+                            this.$set(this, 'chart5_xAxis', chart5_xAxis)
+                            this.$set(this, 'chart5_yAxis', chart5_yAxis)
+
+                            this.$nextTick(() => {
+                                this.initChart5()
+                            })
+                        }
+
+                        if (res.data.pondingTimeForecastList) {
+                            let chart6_xAxis = [];
+                            let chart6_yAxis = [[],[]];
+
+                            res.data.pondingTimeForecastList.forEach((item,index) => {
+                                chart6_xAxis.push(item.timeStr)
+                                if (item.current) {
+                                    chart6_yAxis[0].push(item.waterLevel)
+                                    chart6_yAxis[1].push(null)
+                                } else {
+                                    chart6_yAxis[1].push(item.waterLevel)
+                                    if (index > 0) {
+                                        if (res.data.pondingTimeForecastList[index - 1].current) {
+                                            chart6_yAxis[0].push(item.waterLevel)
+                                        } else {
+                                            chart6_yAxis[0].push(null)
+
+                                        }
+                                    } else {
+                                        chart6_yAxis[0].push(null)
+                                    }
+                                }
+                            })
+
+                            this.$set(this, 'chart6_xAxis', chart6_xAxis)
+                            this.$set(this, 'chart6_yAxis', chart6_yAxis)
+
+                            this.$nextTick(() => {
+                                this.initChart6()
+                            })
+                        }
+                    }
+                }
+            })
+        },
+        getWarningStatYoy(){
+            let params = {
+                deviceUid:this.id,
+                startTime:'',
+                endTime:''
+            }
+
+            if (this.queryParams.time[0]) {
+                params.startTime = new Date(this.queryParams.time[0]).getTime()
+                params.endTime = new Date(this.queryParams.time[1]).getTime()
+            }
+            getWarningStatYoy(params).then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        let total = 0;
+                        if (res.data.warningStatList) {
+                             let chart2_xAxis = [];
+                            let chart2_yAxis = [[],[],[]];
+                            res.data.warningStatList.forEach(item => {
+                                chart2_xAxis.push(item.timeStr)
+                                total += (parseInt(item.mild) + parseInt(item.medium) + parseInt(item.serious))
+                                chart2_yAxis[0].push(item.serious)
+                                chart2_yAxis[1].push(item.medium)
+                                chart2_yAxis[2].push(item.mild)
+
+                            })
+
+                            this.$set(this, 'chart2_xAxis', chart2_xAxis)
+                            this.$set(this, 'chart2_yAxis', chart2_yAxis)
+                            this.chart2_total = total;
+                            this.chart2_yoy = res.data.yoy
+                            this.$nextTick(() => {
+                                this.initChart2()
+                            })
+                        }
+                    }
+                }
+            })
         }
+        
     },
     mounted(){
         
-        this.initChart1()
-        this.initChart2()
-        this.initChart3()
-        this.initChart4()
-        this.initChart5()
-        this.initChart6()
     }
 }
 </script>
@@ -520,6 +872,37 @@ export default {
     overflow-y: scroll;
     // display: flex;
     // flex-direction: column;
+
+    .state-total-wrap{
+        position: absolute;
+        height: 32px;
+        padding: 0 16px;
+        border-radius: 16px;
+        background-color: #f1f8ff;
+        display: flex;
+        align-items: center;
+        right: 24px;
+
+        .total-item{
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+
+            .big{
+                font-size: 20px;
+                margin: 0 4px;
+            }
+
+            .num{
+                font-weight: 500;
+                margin-left: 4px;
+            }
+        }
+
+        .total-item + .total-item{
+            margin-left: 16px;
+        }
+    }
 
     .search-wrap{
         padding: 32px 24px;

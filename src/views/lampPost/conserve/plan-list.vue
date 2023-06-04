@@ -1,6 +1,25 @@
 <template>
     <div class="app-container conserve-plan-list" style="background:#eee;height:calc(100vh - 50px)">
-        <div class="h104"></div>
+        <div class="h104">
+            <el-form :model="queryParams" size="small" :inline="true">
+                <el-form-item label="状态" prop="status">
+                    <el-select v-model="queryParams.status" placeholder="请选择状态">
+                        
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="时间" prop="time">
+                    <el-date-picker v-model="queryParams.time" 
+                                    type="daterange"
+                                    placeholder="请选择安装时间"
+                                    style="width:100%"
+                                    value-format="yyyy-MM-dd" ></el-date-picker>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+                    <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
         <div class="c-container">
             <div class="c-content">
                 <div class="tool-row">
@@ -119,7 +138,9 @@ export default {
             total:0,
             queryParams:{
                 pageNum:1,
-                pageSize:20
+                pageSize:20,
+                status:'',
+                time:[]
             },
             ids:[],
             list:[],
@@ -148,6 +169,12 @@ export default {
         }
     },
     methods:{
+        handleQuery(){
+
+        },
+        resetQuery(){
+
+        },
         handleExport(){
 
         },
@@ -180,6 +207,18 @@ export default {
         background-color: #fff;
         border-radius: 4px;
         margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 0 24px;
+
+        .el-form{
+            width: 100%;
+
+            .el-form-item--small.el-form-item{
+                margin-bottom: 0;
+            }
+        }
     }
 
     .c-container{

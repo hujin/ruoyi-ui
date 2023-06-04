@@ -4,30 +4,30 @@
             <div class="left1">
                 <div class="name">今日最大水位</div>
                 <div class="water">
-                    <div class="num">19</div>
+                    <div class="num">{{info.maxWaterLevel || 0}}</div>
                     <div class="symbol">cm</div>
                 </div>
-                <div class="desc">液位预警值:13cm</div>
+                <div class="desc">液位预警值:{{info.warningThresholdValue || 0}}cm</div>
             </div>
             <div class="right1">
                 <div class="column">
                     <div class="item">
                         <div class="label">当前水位</div>
-                        <div class="val">16cm</div>
+                        <div class="val">{{info.currentWaterLevel || 0}}cm</div>
                     </div>
                     <div class="item">
                         <div class="label">积水速度</div>
-                        <div class="val">13cm²/h</div>
+                        <div class="val">{{info.waterLevelUpSpeed}}cm²/h</div>
                     </div>
                 </div>
                 <div class="column">
                     <div class="item">
                         <div class="label">排水速度</div>
-                        <div class="val">东南风</div>
+                        <div class="val">{{info.waterLevelDownSpeed || 0}}cm²/h</div>
                     </div>
                     <div class="item">
                         <div class="label">积水时长</div>
-                        <div class="val">0天3小时0分(3h)</div>
+                        <div class="val">{{info.warningContinueTime || '暂无'}}</div>
                     </div>
                 </div>
                 
@@ -39,17 +39,13 @@
     </div>
 </template>
 <script>
-import * as echarts from 'echarts'
 import resize from '@/views/dashboard/mixins/resize'
-import { getMonitorList,getHourData } from "@/api/environment";
+import { getRealTimeOverview } from "@/api/hydrops";
 
 export default {
     mixins: [resize],
     props:{
-        info:{
-            type:Object,
-            default:{}
-        },
+        
         id:{
             type:String | Number,
             default:''
@@ -57,16 +53,39 @@ export default {
     },
     data(){
         return {
-            
+            info:{
+                currentWaterLevel: '',
+                maxWaterLevel: '',
+                warningContinueTime: '',
+                warningThresholdValue: '',
+                waterLevelDownSpeed: '',
+                waterLevelUpSpeed: ''
+            }
         }
     },
     watch:{
-       
+       id:{
+        handler(val){
+            if (val) {
+                this.getRealTimeOverview(val)
+            }
+        },
+        immediate:true
+       }
     },
     methods:{
         handleClick(tab, event){
 
         },
+        getRealTimeOverview(id){
+            getRealTimeOverview({deviceUid:id}).then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        this.$set(this, 'info', res.data)
+                    }
+                }
+            })
+        }
         
     },
     created(){

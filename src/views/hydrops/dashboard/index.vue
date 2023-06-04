@@ -11,15 +11,26 @@
                 </div>
                 <div class="data-body" v-if="isOpen">
                     <div class="table-wrap">
-                        <el-table :data="dataList" style="width:100%">
-                            <el-table-column label="站点名称" align="left" width="140" ></el-table-column>
-                            <el-table-column label="实时水位cm" align="center" width="100"  ></el-table-column>
-                            <el-table-column label="状态" align="center"  ></el-table-column>
-
+                        <el-table :data="dataList" style="width:100%;" height="300">
+                            <el-table-column label="站点名称" align="left" width="140" >
+                                <template slot-scope="scope">
+                                    <div style="font-size:12px;color:rgba">{{roadFormat(scope.row) + '-水位-' + scope.row.deviceName}}</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="实时水位cm" align="center" width="100">
+                                <template slot-scope="scope">
+                                    <div>{{scope.row.realWater}}</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="状态" align="center" >
+                                <template slot-scope="scope">
+                                    <div>{{scope.row.statusDesc}}</div>
+                                </template>
+                            </el-table-column>
                         </el-table>
                     </div>
                     <div class="page-wrap">
-                        <el-pagination :total="dataParams.total" layout="prev,pager, next"></el-pagination>
+                        <el-pagination :total="dataParams.total" @current-change="handleCurrentChange" layout="prev,pager, next"></el-pagination>
                     </div>
                 </div>
             </div>
@@ -27,62 +38,72 @@
                 <div class="pie-header">
                     <div class="pie-title">
                         <span class="label">报警总数</span>
-                        <span class="num">11</span>
+                        <span class="num">{{chart3_obj.totalWarning}}</span>
                     </div>
                     <div class="pie-legend">
                         <div class="pie-legend-item">
                             <div class="circle" style="background-color:#EB0E1D"></div>
                             <div class="label">严重积水:</div>
-                            <div class="num">3</div>
+                            <div class="num">{{chart3_obj.serious}}</div>
                         </div>
                         <div class="pie-legend-item">
                             <div class="circle" style="background-color:#FF8300"></div>
                             <div class="label">中度积水:</div>
-                            <div class="num">3</div>
+                            <div class="num">{{chart3_obj.medium}}</div>
                         </div>
                         <div class="pie-legend-item">
                             <div class="circle" style="background-color:#FAAC13"></div>
                             <div class="label">轻度积水:</div>
-                            <div class="num">3</div>
+                            <div class="num">{{chart3_obj.mild}}</div>
                         </div>
                     </div>
                 </div>
-                <div class="pie-body"></div>
+                <div class="pie-body">
+                    <div id="chart3"  ref="chart3" style="width:100%;height:100%"></div>
+
+                </div>
             </div>
         </div>
         <div class="info-wrap">
-            <div class="row">
+            <div class="row" style="justify-content:start">
                 <div class="label" style="width:70px">道路:</div>
                 <div class="val">
-                    <el-select v-model="road"></el-select>
+                    <el-select v-model="road" @change="roadChange">
+                        <el-option
+                        v-for="dict in dict.type.sys_road"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                    />
+                    </el-select>
                 </div>
             </div>
            
             <div class="box-h100 gray">
-                <div class="label">总监控设备数量</div>
+                <div class="label">水位监测站点数</div>
                 <div class="number">
-                    <span class="strong">{{info.count}}</span>
-                    <span>(台)</span>
+                    <span class="strong">{{info.totalPondinCount}}</span>
+                    <span>个</span>
                 </div>
             </div>
             <div class="row" style="margin-bottom:0">
                 <div class="box-h100 gray white">
                     <div class="flex">
                         <div class="circle"></div>
-                        <div class="label">正常</div>
+                        <div class="label">报警</div>
                     </div>
                     <div class="number">
-                        <span class="strong">{{info.onlineCount}}</span>
+                        <span class="strong">{{info.deviceWarningCount}}</span>
                         <span>台</span>
                     </div>
                 </div>
                 <div class="box-h100 gray white">
                     <div class="flex">
                         <div class="circle"></div>
-                        <div class="label">正常</div>
+                        <div class="label">在线</div>
                     </div>
                     <div class="number">
-                        <span class="strong">{{info.onlineCount}}</span>
+                        <span class="strong">{{info.deviceOnlineCount}}</span>
                         <span>台</span>
                     </div>
                 </div>
@@ -92,7 +113,7 @@
                         <div class="label">离线</div>
                     </div>
                      <div class="number">
-                        <span class="strong">{{info.offLine}}</span>
+                        <span class="strong">{{info.deviceOfflineCount}}</span>
                         <span>台</span>
                     </div>
                 </div>
@@ -101,14 +122,14 @@
                 <div class="box-h100 gray" style="width:206px">
                     <div class="label">最大积水深度</div>
                     <div class="number">
-                        <span class="strong">{{info.count}}</span>
+                        <span class="strong">{{info.currentMaxWaterLevel}}</span>
                         <span>cm</span>
                     </div>
                 </div>
                 <div class="box-h100 gray"  style="width:206px">
                     <div class="label">影响通行</div>
                     <div class="number">
-                        <span class="strong">{{info.count}}</span>
+                        <span class="strong">{{info.warningCount}}</span>
                         <span>处</span>
                     </div>
                 </div>
@@ -119,16 +140,16 @@
                     <div class="sub-title">单位：次</div>
                 </div>
                 <div class="chart-body">
-                    <div id="chart1"  ref="chart1" ></div>
+                    <div id="chart1"  ref="chart1" style="width:100%;height:100%"></div>
                 </div>
             </div>
-            <div class="chart-wrap">
+            <div class="chart-wrap" style="margin-top:24px">
                 <div class="chart-header">
                     <div class="title">周报警处理统计</div>
                     <div class="sub-title">单位：次</div>
                 </div>
                 <div class="chart-body">
-                    <div id="chart2"  ref="chart2" ></div>
+                    <div id="chart2"  ref="chart2" style="width:100%;height:100%"></div>
                 </div>
             </div>
         </div>
@@ -193,16 +214,19 @@
 <script>
 import * as echarts from 'echarts'
 
-import { getMonitorDetailInMap } from "@/api/environment";
 
-import { getOverviewInfo } from "@/api/video";
-
+import { getPondingWarningWeekStat,
+         getOverviewInfo,
+         getSlpPondingReportedDataBase,
+         getWarningProportionVo,
+         getDeviceInfoById } from "@/api/hydrops";
 
 import AMapLoader from '@amap/amap-jsapi-loader'
 window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
 export default {
+    dicts: ['sys_road'],
     data(){
         return {
             isOpen:true,
@@ -222,61 +246,212 @@ export default {
             placeSearch : null, 
             AMap:null,
             info:{
-                count:0,
-                offLine:1,
-                onlineCount:0,
-                slpAirInfoVoList:[],
-                warningContent:'',
-                warningLevel:'',
-                warningName:'',
-                warningType:''
+                currentMaxWaterLevel:0,
+                deviceOfflineCount:0,
+                deviceOnlineCount:0,
+                deviceWarningCount:0,
+                slpPondingMonitorList:[],
+                totalPondinCount:0,
+                warningCount: 0,
             },
             visible:false,
+            chart1:null,
+            chart1_xAxis:[],
+            chart1_yAxis:[],
+            chart2:null,
+            chart2_xAxis:[],
+            chart2_yAxis:[],
             detail:{
                 
-            }
+            },
+            chart3_obj:{
+                medium: 0,
+                mild: 0,
+                normal: 0,
+                serious: 0,
+                totalWarning: 0
+            },
+            chart3:null,
+            chart3_xAxis:[],
+            chart3_yAxis:[],
         }
     },
+    beforeDestroy(){
+        console.log('test 11111222')
+    },
     methods:{
-        initChart(){
+        handleCurrentChange(val){
+            this.dataParams.pageNum = val
+            this.getSlpPondingReportedDataBase()
+        },
+        roadFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_road, row.road);
+        },
+        roadChange(){
+            this.map.clearMap();
+
+            this.getInfo()
+        },
+        initChart1(){
             var el = this.$refs['chart1'];
-            this.chart = echarts.init(el);
-            let option = {
-                color:['#6ADCAF','#6395F9','#FF9E88','#F7C32D'],
+            this.chart1 = echarts.init(el);
+            let options = {
+                color:['#6ADCAF','#6395F9','#F7C32D'],
+                tooltip: {
+                    show:true,
+                    trigger:'axis',
+                    renderMode:'richText'                
+                },
+                
+                legend: {
+                    left: 'right',
+                    top: 0,
+                    itemWidth:14,
+                    data:['最低水位','最高水位','平均水位']
+                },
+
+                grid:{
+                    bottom:20,
+                    right:10,
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: this.chart1_xAxis,
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '{value} cm'
+                        }
+                    }
+                ],
+                series: [{
+                    name:'轻度积水',
+                    type: 'bar',
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return value + ' cm';
+                        }
+                    },
+                    data: this.chart1_yAxis[0]
+                },{
+                    name:'中度积水',
+                    type: 'bar',
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return value + ' cm';
+                        }
+                    },
+                    data: this.chart1_yAxis[1]
+                },{
+                    name:'中度积水',
+                    type: 'bar',
+                    tooltip: {
+                        valueFormatter: function (value) {
+                            return value + ' cm';
+                        }
+                    },
+                    data: this.chart1_yAxis[2]
+                }]
+            }
+
+            this.chart1.setOption(options)
+
+        },
+        initChart2(){
+            var el = this.$refs['chart2']
+            this.chart2 = echarts.init(el)
+            let options = {
+                color:['#6395F9','#6ADCAF'],
+                legend: {
+                    left: 'right',
+                    top: 0,
+                    itemWidth:14,
+                    data:['全部','已处理'],
+                },
+                grid:{
+                    bottom:35,
+                    right:10,
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: this.chart2_xAxis,
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value',
+                        
+                    }
+                ],
+                series: [{
+                    name:'全部',
+                    type:'bar',
+                    stack:'ad',
+                    data:this.chart2_yAxis[0]
+                },{
+                    name:'已处理',
+                    type:'bar',
+                    stack:'ad',
+                    data:this.chart2_yAxis[1]
+                }]
+            }
+
+            this.chart2.setOption(options)
+
+        },
+        initChart3(){
+            var el = this.$refs['chart3'];
+            this.chart3 = echarts.init(el);
+            let options = {
+                color:['#4E86FF','#FAAC13','#FF8300','#EB0E1D'],
                 tooltip: {
                     trigger: 'item'
                 },
                 legend: {
-                    left: 'center',
-                    bottom: 20,
-                    itemWidth:14
-                },
-                grid:{
-                    bottom:35,
+                    top: '30',
+                    right: '50',
+                    itemWidth:14,
+                    orient:'vertical'
                 },
                 series: [
                     {
+                        name: 'Access From',
                         type: 'pie',
-                        radius: ['25%', '50%'],
-                         center: ['50%', '50%'],
-                        data: [
-                            { value: 1048, name: '公安' },
-                            { value: 735, name: '交警' },
-                            { value: 580, name: '市政' },
-                            { value: 484, name: '其他' },
-                        ],
+                        center: [100,80],
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
                         emphasis: {
-                            itemStyle: {
-                                shadowBlur: 10,
-                                shadowOffsetX: 0,
-                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            label: {
+                                show: true,
+                                fontSize: 20,
+                                fontWeight: 'bold'
                             }
-                        }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: this.chart3_yAxis
                     }
                 ]
-            };
+            }
 
-            this.chart.setOption(option)
+            this.chart3.setOption(options)
+
         },
         search(){
             let keyword = this.keyword;
@@ -309,6 +484,13 @@ export default {
                 path:'/hydropsonment/weather-data?id=' + this.detail.id
             })
         },
+        getDeviceInfoById(id){
+            getDeviceInfoById(id).then(res => {
+                if (res.code == 200) {
+                    this.visible = true
+                }
+            })
+        },
         initMap() {
             AMapLoader.load({
                 "key": "df32d1c57071a49dc07d45dbaad7cdbd", 
@@ -323,42 +505,137 @@ export default {
                     center : [120.252635, 30.236056], //中心点坐标  郑州
                     resizeEnable: true
                 });
+                this.getInfo();
+
             }).catch(e => {
                 console.log(e);
             });
         },
         getInfo(){
-            getOverviewInfo().then(res => {
+            let params = {
+                road:this.road
+            }
+            getOverviewInfo(params).then(res => {
                 if (res.code == 200) {
-                    this.$set(this, 'info', res.data);
-                    let list = res.data.slpIntegratedManagementList;
-                    if (this.AMap && list) {
-                        list.forEach(item => {
-                            new this.AMap.Marker({
-                                position:[item.longitude, item.latitude],
-                                map:this.map
-                            }).on('click', (event) => {
-                                console.log(event, 'marker click')
-                                this.getMonitorDetailInMap(item.id)
-                            })
+                    if (res.data) {
+                        this.$set(this, 'info', res.data);
+                        let list = res.data.slpPondingMonitorList;
+                        this.$nextTick(() => {
+                            if (this.AMap && list) {
+                                list.forEach(item => {
+                                    if (item.latitude) {
+                                        new this.AMap.Marker({
+                                            position:[item.longitude, item.latitude],
+                                            map:this.map
+                                        }).on('click', (event) => {
+                                            this.getDeviceInfoById(item.id)
+                                            // console.log(event, 'marker click', item.id)
+                                        })
+                                    }
+                            
+                                });
+                            }
+                        })
+                        
+                    } else {
+                        this.$set(this, 'info', {
+                            currentMaxWaterLevel:0,
+                            deviceOfflineCount:1,
+                            deviceOnlineCount:0,
+                            deviceWarningCount:0,
+                            slpPondingMonitorList:[],
+                            totalPondinCount:0,
+                            warningCount:0,
                         });
+
+                    }
+                    
+                }
+            })
+        },
+        getPondingWarningWeekStat(){
+            getPondingWarningWeekStat({}).then(res => {
+                if(res.code == 200) {
+                    if (res.data) {
+                        if (res.data.warningStatVo) {
+                            let chart1_xAxis = [];
+                            let chart1_yAxis = [[],[],[]];
+
+                            res.data.warningStatVo.forEach(item => {
+                                chart1_xAxis.push(item.timeStr)
+
+                                chart1_yAxis[0].push(item.mild)
+                                chart1_yAxis[1].push(item.medium)
+                                chart1_yAxis[2].push(item.serious)
+                            })
+
+                            this.$set(this, 'chart1_xAxis', chart1_xAxis)
+                            this.$set(this, 'chart1_yAxis', chart1_yAxis)
+
+                            this.$nextTick(() => {
+                                this.initChart1()
+                            })
+                        }
+
+                        if (res.data.warningHandleStatVo) {
+                            let chart2_xAxis = [];
+                            let chart2_yAxis = [[],[]];
+
+                            res.data.warningHandleStatVo.forEach(item => {
+                                chart2_xAxis.push(item.timeStr)
+
+                                chart2_yAxis[0].push(item.handleTimes)
+                                chart2_yAxis[1].push(item.warningTimes)
+                            })
+
+                            this.$set(this, 'chart2_xAxis', chart2_xAxis)
+                            this.$set(this, 'chart2_yAxis', chart2_yAxis)
+
+                            this.$nextTick(() => {
+                                this.initChart2()
+                            })
+                        }
                     }
                 }
             })
         },
-        getMonitorDetailInMap(id){
-            getMonitorDetailInMap(id).then(res => {
+        getSlpPondingReportedDataBase(){
+            getSlpPondingReportedDataBase(this.dataParams).then(res => {
                 if (res.code == 200) {
-                    this.visible = true
-                    this.$set(this, 'detail', res.data)
+                    if (res.rows) {
+                        this.dataList = res.rows
+                        this.dataParams.total = res.total
+                    }
+                }
+            })
+        },
+        getWarningProportionVo(){
+            getWarningProportionVo().then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        this.$set(this, 'chart3_obj', res.data)
+                        let data = [
+                            { value: res.data.normal, name: '未积水' },
+                            { value: res.data.mild, name: '轻度积水' },
+                            { value: res.data.medium, name: '中度积水' },
+                            { value: res.data.serious, name: '严重积水' }
+                        ]
+                        this.$set(this, 'chart3_yAxis', data)
+                        this.$nextTick(() => {
+                            this.initChart3()
+
+                        })
+                    }
                 }
             })
         }
     },
     mounted(){
-        this.getInfo();
         this.initMap();
-        this.initChart()
+
+        this.getPondingWarningWeekStat();
+        this.getWarningProportionVo();
+        this.getSlpPondingReportedDataBase();
     }
 }
 </script>
@@ -507,6 +784,12 @@ export default {
                         }
                     }
                 }
+            }
+
+            .pie-body{
+                flex: 1;
+                height: 0;
+                width: 100%;
             }
         }
     }

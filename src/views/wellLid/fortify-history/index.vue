@@ -2,15 +2,26 @@
     <div class="app-container fortify-history">
         <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
             <el-form-item label="操作" prop="action">
-                <el-input v-model="queryParams.action" clearable></el-input>
+                <el-select v-model="queryParams.action" placeholder="请选择操作">
+                    <el-option
+                        label="设防"
+                        value="ON"
+                    />
+                    <el-option
+                        label="撤防"
+                        value="OFF"
+                    />
+                </el-select>
             </el-form-item>
             <el-form-item label="道路" prop="road">
-                <el-input
-                    v-model="queryParams.road"
-                    placeholder="请输入道路’"
-                    clearable
-                    @keyup.enter.native="handleQuery"
-                />
+                <el-select v-model="queryParams.road" placeholder="请选择道路">
+                    <el-option
+                        v-for="dict in dict.type.sys_road"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                    />
+                </el-select>
             </el-form-item>
              <el-form-item label="操作人员" prop="operatorName">
                 <el-input
@@ -57,7 +68,11 @@
             <el-table-column label="时间" align="center"  prop="operationTimeStr"  />
             <el-table-column label="井盖名称" align="center" prop="manholeCoverName" />
             <el-table-column label="设备UID" align="center" prop="manholeCoverUid" />
-            <el-table-column label="所在道路" align="center" prop="road" ></el-table-column>
+            <el-table-column label="所在道路" align="center" prop="road" >
+                <template slot-scope="scope">
+                    <div>{{roadFormat(scope.row)}}</div>
+                </template>
+            </el-table-column>
             <el-table-column label="地点" align="center" prop="address" />
             <el-table-column label="操作" align="center"  >
                  <template slot-scope="scope">
@@ -86,6 +101,7 @@ import { getCoverLogList,
 
 
 export default {
+    dicts: ['sys_road'],
     data(){
         return {
             // 遮罩层
@@ -118,12 +134,12 @@ export default {
         }
     },
     methods:{
-
+        roadFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_road, row.road);
+        },
         handleExport(){
             this.download('/slp/slp/manhole/cover/defences/export', this.queryParams, `device_${new Date().getTime()}.xlsx`) 
         },
-        
-       
         handleQuery(){
             this.queryParams.pageNum = 1;
             this.getList();
@@ -149,7 +165,7 @@ export default {
                 return
             }
 
-            this.$modal.confirm('是否确认删除该数据吗？').then(function() {
+            this.$modal.confirm('是否确认删除该数据吗？').then(() => {
                 return removeLog(this.ids.join(','));
             }).then(() => {
                 this.getList();

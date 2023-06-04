@@ -1,9 +1,10 @@
 import request from '@/utils/request'
 
-export function getOverviewInfo(){
+export function getOverviewInfo(params){
   return request({
       url:'/slp/slp/manhole/cover/getOverviewInfo',
-      method:'get'
+      method:'get',
+      params
   })
 }
 
@@ -118,6 +119,7 @@ export function getDeviceWarningCount(params) {
 }
 
 export function removeWarning(ids){
+  console.log(ids)
   return request({
     url:`/slp/slp/manhole/cover/warning/${ids}`,
     method:'delete'

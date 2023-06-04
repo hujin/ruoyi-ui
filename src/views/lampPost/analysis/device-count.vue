@@ -1,7 +1,32 @@
 <template>
     <div class="app-container analysis-device-count" style="background:#eee;height:calc(100vh - 50px)">
         <div class="page-title">感知设备数量及占比</div>
-        <div class="h104"></div>
+        <div class="h104">
+            <el-form :model="queryForm" size="small" :inline="true">
+                <el-form-item label="时间" prop="time">
+                    <el-date-picker v-model="queryForm.time" 
+                                    type="daterange"
+                                    range-separator="至"
+                                    start-placeholder="开始日期"
+                                    end-placeholder="结束日期"
+                                    style="width:100%"
+                                    value-format="yyyy-MM-dd hh:mm:ss"></el-date-picker>
+                </el-form-item>
+                <el-form-item prop="date_type">
+                    <el-radio-group v-model="queryForm.date_type" >
+                        <el-radio-button label="本月"></el-radio-button>
+                        <el-radio-button label="本年"></el-radio-button>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item prop="type">
+                    <el-radio-group v-model="queryForm.type" >
+                        <el-radio-button label="按设备"></el-radio-button>
+                        <el-radio-button label="按道路"></el-radio-button>
+                    </el-radio-group>
+                </el-form-item>
+                
+            </el-form>
+        </div>
         <div class="section-title">
             <div class="label">总感知设备数量:</div>
             <div class="val">185700个</div>
@@ -31,10 +56,38 @@
                     <div class="link" @click="openDetail">详情</div>
                 </div>
                 <div class="list">
-                    <div class="item" v-for="(item,index) in list" :key="index">
-                        <div class="item-name">A道路新增设备</div>
-                        <div class="item-value">12个</div>
-                    </div>
+                        <div class="item">
+                            <div class="item-name">平澜路新增设备</div>
+                            <div class="item-value">12个</div>
+                        </div>
+                        <div class="item">
+                            <div class="item-name">奔竟大道新增设备</div>
+                            <div class="item-value">12个</div>
+                        </div>
+                        <div class="item">
+                            <div class="item-name">飞虹路新增设备</div>
+                            <div class="item-value">12个</div>
+                        </div>
+                        <div class="item">
+                            <div class="item-name">丰北路新增设备</div>
+                            <div class="item-value">12个</div>
+                        </div>
+                        <div class="item">
+                            <div class="item-name">民祥路新增设备</div>
+                            <div class="item-value">12个</div>
+                        </div>
+                        <div class="item">
+                            <div class="item-name">观澜路新增设备</div>
+                            <div class="item-value">12个</div>
+                        </div>
+                         <div class="item">
+                            <div class="item-name">亚运村路新增设备</div>
+                            <div class="item-value">12个</div>
+                        </div>
+                        <div class="item">
+                            <div class="item-name">抬玖街新增设备</div>
+                            <div class="item-value">12个</div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -64,7 +117,7 @@
                         </div>
                         <div class="data-item">
                             <div class="circle" style="background:#61DEDD"></div>
-                            <div class="name">灯盖倾斜传感器</div>
+                            <div class="name">灯杆倾斜传感器</div>
                             <div class="val">18个</div>
                             <div class="percent">15%</div>
                         </div>
@@ -86,7 +139,10 @@
 <script>
 import * as echarts from 'echarts'
 
+import { getDeviceCount } from "@/api/lampPost";
+
 export default {
+    dicts: ['sys_road','sys_roadside','sys_device_type'],
     data(){
         return {
             deviceTypeActive:'单灯控制器',
@@ -113,7 +169,21 @@ export default {
                 val:'8500个'
             }],
             list:[],
-            open:false
+            open:false,
+            queryForm:{
+                time:['',''],
+                date_type:'本月',
+                type:'按道路'
+            }
+        }
+    },
+    watch:{
+        queryForm:{
+            handler(){
+                this.getDeviceCount()
+            },
+            deep:true,
+            immediate:false
         }
     },
     methods:{
@@ -136,7 +206,7 @@ export default {
                 },
                 yAxis: {
                     type: 'category',
-                    data: ['气象站', '电表', '边缘计算网关', '灯盖倾斜传感器', '高清摄像头', '单灯控制器'],
+                    data: ['气象站', '电表', '边缘计算网关', '灯杆倾斜传感器', '高清摄像头', '单灯控制器'],
                 },
                 grid:{
                     bottom:35,
@@ -185,7 +255,7 @@ export default {
                             { value: 28, name: '摄像头' },
                             { value: 30, name: '网关' },
                             { value: 40, name: '气象站' },
-                            { value: 32, name: '灯盖倾斜传感器' },
+                            { value: 32, name: '灯杆倾斜传感器' },
                             { value: 38, name: '集中控制器' }
                         ]
                     }
@@ -195,8 +265,33 @@ export default {
             this.chart.setOption(option)
 
         },
+        getDeviceCount(){
+            let params = {
+                requestType: this.queryForm.type == '按道路' ? 2 : 1,
+                beginTime:'',
+                endTime:''
+            }
+
+            // if (this.queryForm.time.length > 0) {
+            //     params.beginTime = new Date(this.queryForm.time[0]).Format('yyyy-MM-dd')
+            //     params.endTime = new Date(this.queryForm.time[1]).Format('yyyy-MM-dd')
+            // }
+            console.log(params)
+
+            getDeviceCount(params).then(res => {
+
+            })
+        }
     },
     mounted(){
+        let start_date = new Date(new Date().setDate(1))
+        let end_date = new Date()
+        this.queryForm.time[0] = start_date
+        this.queryForm.time[1] = end_date
+        this.getDeviceCount();
+
+
+
         for (let i = 0; i < 20; i++) {
             this.list.push({})
         }
@@ -223,6 +318,18 @@ export default {
         background-color: #fff;
         border-radius: 4px;
         margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 0 24px;
+
+        .el-form{
+            width: 100%;
+
+            .el-form-item--small.el-form-item{
+                margin-bottom: 0;
+            }
+        }
     }
 
     .section-title{

@@ -1,7 +1,44 @@
 <template>
     <div class="app-container analysis-device-state" style="background:#eee;height:calc(100vh - 50px)">
         <div class="page-title">感知设备状态及占比</div>
-        <div class="h104"></div>
+        <div class="h104">
+            <el-form :model="queryForm" size="small" :inline="true">
+                <el-form-item label="时间" prop="time">
+                    <el-date-picker v-model="queryForm.time" 
+                                    type="daterange"
+                                    placeholder="请选择安装时间"
+                                    style="width:100%"
+                                    value-format="yyyy-MM-dd" ></el-date-picker>
+                </el-form-item>
+                <el-form-item prop="date_type">
+                    <el-radio-group v-model="queryForm.date_type" >
+                        <el-radio-button label="本周"></el-radio-button>
+                        <el-radio-button label="本月"></el-radio-button>
+                        <el-radio-button label="本年"></el-radio-button>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="道路" prop="road">
+                    <el-select v-model="queryForm.road" placeholder="请选择道路">
+                        <el-option
+                            v-for="dict in dict.type.sys_road"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="设备分类" prop="type">
+                    <el-select v-model="queryForm.type" placeholder="请选择设备分类">
+                        <el-option
+                            v-for="dict in dict.type.sys_device_type"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
+                </el-form-item>
+            </el-form>
+        </div>
         <div class="h602">
             <div class="h-item">
                 <div class="chart-title">设备在线率及在线数量</div>
@@ -22,10 +59,18 @@
 <script>
 import * as echarts from 'echarts'
 
+import { getDeviceEnableList } from "@/api/lampPost";
+
 export default {
+    dicts: ['sys_road','sys_roadside','sys_device_type'],
     data(){
         return {
-
+            queryForm:{
+                time:[],
+                road:'',
+                type:'',
+                date_type:'本月'
+            }
         }
     },
     methods:{
@@ -42,7 +87,7 @@ export default {
                 },
                 yAxis: {
                     type: 'category',
-                    data: ['气象站', '电表', '边缘计算网关', '灯盖倾斜传感器', '高清摄像头', '单灯控制器'],
+                    data: ['气象站', '电表', '边缘计算网关', '灯杆倾斜传感器', '高清摄像头', '单灯控制器'],
                 },
                 grid:{
                     bottom:35,
@@ -108,8 +153,14 @@ export default {
             this.chart.setOption(option)
 
         },
+        getDeviceEnableList(){
+            getDeviceEnableList().then(res => {
+
+            })
+        }
     },
     mounted(){
+        this.getDeviceEnableList()
         this.initChart()
         this.initChart2()
     }
@@ -134,6 +185,18 @@ export default {
         background-color: #fff;
         border-radius: 4px;
         margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 0 24px;
+
+        .el-form{
+            width: 100%;
+
+            .el-form-item--small.el-form-item{
+                margin-bottom: 0;
+            }
+        }
     }
 
     .h602{

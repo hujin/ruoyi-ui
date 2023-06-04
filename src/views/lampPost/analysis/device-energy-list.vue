@@ -23,7 +23,7 @@
 
             <el-table-column label="设备名称" align="center"  prop="name"  />
            
-            <el-table-column label="所在街道" align="center" prop="road" />
+            <el-table-column label="所在道路" align="center" prop="road" />
             
             <el-table-column label="当前抄表数" align="center" prop="roadSide" />
             <el-table-column label="最新抄表时间" align="center" prop="roadSide" />
@@ -74,7 +74,7 @@
                     </div>
                 </div>
                 <div class="table-wrap">
-                    <el-table ref="tables" v-loading="loading" :data="list">
+                    <el-table ref="tables" v-loading="loading" height="300" :data="list">
                         <el-table-column type="index" label="序号" width="50" align="center" />
                         <el-table-column label="抄表数" align="center"  prop="name"  />
                         <el-table-column label="抄表时间" align="center" prop="roadSide" />
