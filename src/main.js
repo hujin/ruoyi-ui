@@ -23,6 +23,8 @@ import './permission' // permission control
 import { getDicts } from "@/api/system/dict/data";
 import { getConfigKey } from "@/api/system/config";
 
+import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+
 window.videojs = videojs
 
 import { parseTime, resetForm, addDateRange, selectDictLabel, selectDictLabels, handleTree } from "@/utils/ruoyi";
@@ -44,6 +46,7 @@ import DictTag from '@/components/DictTag'
 import VueMeta from 'vue-meta'
 // 字典数据组件
 import DictData from '@/components/DictData'
+
 
 // 全局方法挂载
 Vue.prototype.getDicts = getDicts
