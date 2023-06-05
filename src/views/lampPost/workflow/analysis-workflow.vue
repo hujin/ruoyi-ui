@@ -4,19 +4,39 @@
             <div class="row">
                 <div class="row-item">
                     <div class="label">当月新增单位</div>
-                    <div class="val">18个</div>
+                    <div class="val">{{info.currentMonthDeptIncrNum || 0}}个</div>
                 </div>
                 <div class="row-item">
                     <div class="label">申报单位总计</div>
-                    <div class="val">68个</div>
+                    <div class="val">{{info.totalDeptNum || 0}}个</div>
                 </div>
                 <div class="row-item">
                     <div class="label">总申报次数</div>
-                    <div class="val">68个</div>
+                    <div class="val">{{info.totalApplyNum || 0}}个</div>
                 </div>
             </div>
             <div class="chart-wrap">
                 <div class="chart-title">新增单位趋势图</div>
+                <div class="search" style="margin-top:20px">
+                         <el-form :model="queryForm" size="small" :inline="true">
+                            <el-form-item label="时间" prop="time">
+                                <el-date-picker v-model="queryForm.time" 
+                                    type="daterange"
+                                    range-separator="至"
+                                    start-placeholder="开始日期"
+                                    end-placeholder="结束日期"
+                                    style="width:100%"
+                                    value-format="yyyy-MM-dd hh:mm:ss"></el-date-picker>
+                            </el-form-item>
+                            <el-form-item prop="statType">
+                                <el-radio-group v-model="queryForm.statType" >
+                                    <el-radio-button label="本日"></el-radio-button>
+                                    <el-radio-button label="本月"></el-radio-button>
+                                    <el-radio-button label="本年"></el-radio-button>
+                                </el-radio-group>
+                            </el-form-item>
+                        </el-form>
+                </div>
                 <div class="chart-container">
                     <div class="chart" id="chart1" ref="chart1"></div>
                 </div> 
@@ -26,6 +46,7 @@
             <div class="right-col">
                 <div class="chart-wrap" style="width:100%;height:100%">
                     <div class="chart-title">单位申报次数占比</div>
+                    
                     <div class="chart-container">
                         <div class="chart" id="chart2" ref="chart2"></div>
 
@@ -45,6 +66,7 @@
     </div>
 </template>
 <script>
+import { getDeptOverview,getDeptCreateStat,getDeptApplyPropStat } from "@/api/lampPost";
 import * as echarts from 'echarts'
 
 export default {
@@ -52,7 +74,16 @@ export default {
         return {
             chart1:null,
             chart2:null,
-            chart3:null
+            chart3:null,
+            queryForm:{
+                time:[],
+                statType:'本月'
+            },
+            info:{
+                currentMonthDeptIncrNum: 0,
+                totalApplyNum: 8,
+                totalDeptNum: 0
+            }
         }
     },
     methods:{
@@ -162,8 +193,62 @@ export default {
             this.chart3.setOption(option)
 
         },
+        getDeptOverview(){
+            getDeptOverview().then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        this.$set(this, 'info', res.data)
+                    }
+                }
+            })
+        },
+        getDeptCreateStat(){
+             let params = {
+                startTime:'',
+                endTime:'',
+                statType:''
+            }
+            if (this.queryForm.statType == '本日') {
+                params.statType = 'DAY'
+            }
+
+            if (this.queryForm.statType == '本月') {
+                params.statType = 'MONTH'
+            }
+
+            if (this.queryForm.statType == '本年') {
+                params.statType = 'YEAR'
+            }
+            getDeptCreateStat(params).then(res => {
+
+            })
+        },
+        getDeptApplyPropStat(){
+             let params = {
+                startTime:'',
+                endTime:'',
+                statType:''
+            }
+            if (this.queryForm.statType == '本日') {
+                params.statType = 'DAY'
+            }
+
+            if (this.queryForm.statType == '本月') {
+                params.statType = 'MONTH'
+            }
+
+            if (this.queryForm.statType == '本年') {
+                params.statType = 'YEAR'
+            }
+            getDeptApplyPropStat(params).then(res => {
+
+            })
+        }
     },
     mounted(){
+        this.getDeptOverview();
+        this.getDeptCreateStat();
+        this.getDeptApplyPropStat();
         this.initChart1()
         this.initChart2()
         this.initChart3()

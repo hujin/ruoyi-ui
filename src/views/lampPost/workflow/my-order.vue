@@ -48,11 +48,8 @@
                                 <div>{{new Date(scope.row.expectedFinishTime).Format('yyyy-MM-dd')}}</div>
                             </template>
                         </el-table-column>
-                        <el-table-column label="使用时长" align="center"  prop="serviceLifeTimeStr"  width="200px">
-                            
-                        </el-table-column>
-
-                        <el-table-column label="生成时间" align="center"  prop="applyTime" width="120px" >
+                        <el-table-column label="使用时长" align="center"  prop="serviceLifeTimeStr"  width="200px"></el-table-column>
+                        <el-table-column label="生成时间" align="center" prop="applyTime" width="120px" >
                              <template slot-scope="scope">
                                 <div>{{new Date(scope.row.workOrderCreateTime).Format('yyyy-MM-dd')}}</div>
                             </template>
@@ -62,8 +59,8 @@
                         <el-table-column label="处理人" align="center"  prop="auditUserNickName"   width="120px" />
 
                         <el-table-column label="工单状态" align="center"  prop="statusCodeDesc"  />
-                        <el-table-column label="处理结果" align="center" prop="workOrderHandleResult"  />
-                        <el-table-column label="复核结果" align="center"  prop="workOrderCheckResult"  />
+                        <el-table-column label="处理结果" align="center" prop="workOrderHandleResultContent"  />
+                        <el-table-column label="复核结果" align="center"  prop="workOrderCheckResultContent"  />
 
                         <el-table-column label="定位" align="center"  width="230px" >
                             <template slot-scope="scope">
@@ -79,7 +76,14 @@
                                     size="mini"
                                     type="text"
                                     @click="handleUpdate(scope.row)"
+                                    v-if="scope.row.statusCode == 'WORK_ORDER_WAIT'"
                                 >处理</el-button>
+                                <el-button
+                                    size="mini"
+                                    type="text"
+                                    v-if="scope.row.statusCode == 'WORK_ORDER_WAIT_CHECK'"
+                                    @click="handleUpdate(scope.row)"
+                                >复核</el-button>
                                 <el-button
                                     size="mini"
                                     type="text"
@@ -118,14 +122,23 @@
                     <el-form-item label="完成期限:">
                         <span>{{new Date(detail.expectedFinishTime).Format('yyyy-MM-dd')}}</span>
                     </el-form-item>
-                    <el-form-item label="处理意见">
+                    <el-form-item label="处理意见" v-if="detail.statusCode== 'WORK_ORDER_WAIT'"> 
                         <el-radio-group v-model="auditForm.success">
                             <el-radio :label="true">通过</el-radio>
                             <el-radio :label="false">不通过</el-radio>
                         </el-radio-group>
                     </el-form-item>
-                    <el-form-item label="处理结果:" prop="handleResultContent">
+                    <el-form-item label="处理结果:" prop="handleResultContent" v-if="detail.statusCode== 'WORK_ORDER_WAIT'">
                         <el-input v-model="auditForm.handleResultContent" type="textarea" placeholder="请输入处理结果" style="width:100%"></el-input>
+                    </el-form-item>
+                    <el-form-item label="是否复核" v-if="detail.statusCode== 'WORK_ORDER_WAIT_CHECK'"> 
+                        <el-radio-group v-model="auditForm.success">
+                            <el-radio :label="true">通过</el-radio>
+                            <el-radio :label="false">不通过</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="复核结果:" prop="handleResultContent" v-if="detail.statusCode== 'WORK_ORDER_WAIT_CHECK'">
+                        <el-input v-model="auditForm.handleResultContent" type="textarea" placeholder="请输入复核结果" style="width:100%"></el-input>
                     </el-form-item>
                     <el-form-item label="" >
                         <el-upload
@@ -139,7 +152,7 @@
                 </el-form>
             </div>
             <div slot="footer" class="dialog-footer">
-                <el-button @click="workState = false">取 消</el-button>
+                <el-button @click="auditState = false">取 消</el-button>
                 <el-button type="primary" @click="submitHandleResult">提 交</el-button>
             </div>
         </el-dialog>
@@ -154,7 +167,7 @@ import { getToken } from "@/utils/auth";
 import showMap from '@/components/show-map/index.vue'
 import detail from './component/detail.vue'
 
-import { getMyWorkOrderListPaged,getApplyDetail,submitHandleResult } from "@/api/lampPost";
+import { getMyWorkOrderListPaged,getApplyDetail,submitHandleResult,submitCheckHandleResult } from "@/api/lampPost";
 
 
 export default {
@@ -292,13 +305,26 @@ export default {
                     if (form.expectedFinishTime) {
                         form.expectedFinishTime = new Date(form.expectedFinishTime).getTime()
                     }
-                    submitHandleResult(form).then(res => {
-                        if (res.code === 200) {
-                            this.$modal.msgSuccess("处理成功");
-                            this.auditState = false
-                            this.getList();
-                        }
-                    })
+                    if (this.detail.statusCode == 'WORK_ORDER_WAIT') {
+                        submitHandleResult(form).then(res => {
+                            if (res.code === 200) {
+                                this.$modal.msgSuccess("处理成功");
+                                this.auditState = false
+                                this.getList();
+                            }
+                        })
+                    }
+
+                    if (this.detail.statusCode == 'WORK_ORDER_WAIT_CHECK') {
+                        submitCheckHandleResult(form).then(res => {
+                            if (res.code === 200) {
+                                this.$modal.msgSuccess("处理成功");
+                                this.auditState = false
+                                this.getList();
+                            }
+                        })
+                    }
+                    
                 }
             });
         },
@@ -337,6 +363,17 @@ export default {
             // }).catch(() => {});
         },
         handleExport(){
+            let queryParams ={
+                applyQueryStartTime:'',
+                applyQueryEndTime:'',
+                statusCode:this.queryParams.statusCode
+            }
+
+            if (this.queryParams.time.length > 0) {
+                queryParams.applyQueryStartTime = new Date(this.queryParams.time[0]).getTime()
+                queryParams.applyQueryEndTime = new  Date(this.queryParams.time[1]).getTime()
+            }
+            this.download('/slp/slp/approval/getMyWorkOrderListPaged/export', queryParams, `device_${new Date().getTime()}.xlsx`) 
 
         },
         handleSelectionChange(selection) {
@@ -367,8 +404,8 @@ export default {
             }
 
             if (this.queryParams.time.length > 0) {
-                params.applyQueryStartTime = this.queryParams.time[0]
-                params.applyQueryEndTime = this.queryParams.time[1]
+                params.applyQueryStartTime = new Date(this.queryParams.time[0]).getTime()
+                params.applyQueryEndTime = new Date(this.queryParams.time[1]).getTime()
             }
 
             getMyWorkOrderListPaged(params).then(res => {

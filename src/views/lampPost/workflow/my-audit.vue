@@ -154,7 +154,7 @@
                             <span>{{detail.applyUserDeptName}}</span>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
+                    <el-col :span="12" v-if="detail.applyDept">
                         <el-form-item label="申请单位地址:">
                             <div>
                                 <i @click="openMap" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
@@ -293,7 +293,7 @@
                             <span>{{ detail.applyUserDeptName }}</span>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="24">
+                    <el-col :span="24" v-if="detail.applyDept">
                         <el-form-item label="申请单位地址:">
                             <div>
                                 <i @click="openMap" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
@@ -577,7 +577,17 @@ export default {
             }).catch(() => {});
         },
         handleExport(){
+            let queryParams ={
+                applyQueryStartTime:'',
+                applyQueryEndTime:'',
+                statusCode:this.queryParams.statusCode
+            }
 
+            if (this.queryParams.time.length > 0) {
+                queryParams.applyQueryStartTime = new Date(this.queryParams.time[0]).getTime()
+                queryParams.applyQueryEndTime = new  Date(this.queryParams.time[1]).getTime()
+            }
+            this.download('/slp/slp/approval/getMyAuditListPaged/export', queryParams, `device_${new Date().getTime()}.xlsx`) 
         },
         handleSelectionChange(selection) {
             this.ids = selection.map(item => item.id);
@@ -612,8 +622,8 @@ export default {
             }
 
             if (this.queryParams.time.length > 0) {
-                params.applyQueryStartTime = this.queryParams.time[0]
-                params.applyQueryEndTime = this.queryParams.time[1]
+                params.applyQueryStartTime = new Date(this.queryParams.time[0]).getTime()
+                params.applyQueryEndTime = new  Date(this.queryParams.time[1]).getTime()
             }
 
             getMyAuditListPaged(params).then(res => {

@@ -33,12 +33,12 @@
                         size="mini"
                         @click="auditState = true"
                     >添加申请</el-button>
-                     <!-- <el-button
+                     <el-button
                         type="primary"
                         plain
                         size="mini"
-                        @click="handleMultDelete"
-                    >批量处理</el-button> -->
+                        @click="handleExport"
+                    >导出</el-button>
                     <el-button
                         type="primary"
                         plain
@@ -565,6 +565,17 @@ export default {
             }).catch(() => {});
         },
         handleExport(){
+            let queryParams ={
+                applyQueryStartTime:'',
+                applyQueryEndTime:'',
+                statusCode:this.queryParams.statusCode
+            }
+
+            if (this.queryParams.time.length > 0) {
+                queryParams.applyQueryStartTime = new Date(this.queryParams.time[0]).getTime()
+                queryParams.applyQueryEndTime = new  Date(this.queryParams.time[1]).getTime()
+            }
+            this.download('/slp/slp/approval/getMyApplyListPaged/export', queryParams, `device_${new Date().getTime()}.xlsx`) 
 
         },
         handleSelectionChange(selection) {

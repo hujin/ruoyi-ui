@@ -103,9 +103,9 @@
                 <el-form-item label="巡查次数">
                     <el-input-number v-model="form.patrol_count"  style="width:100%" :min="1"></el-input-number>
                 </el-form-item>
-                <el-form-item label="巡查类别:">
+                <!-- <el-form-item label="巡查类别:">
                     <el-select v-model="form.type"  style="width:100%"></el-select>
-                </el-form-item>
+                </el-form-item> -->
                 <el-form-item label="巡查道路">
                     <el-select v-model="form.road"  style="width:100%"></el-select>
                 </el-form-item>

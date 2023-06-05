@@ -7,7 +7,7 @@
             <div class="row">
                 <div class="label" style="width:70px">道路:</div>
                 <div class="val">
-                    <el-select v-model="road">
+                    <el-select v-model="road" @change="roadChange">
                         <el-option
                             v-for="dict in dict.type.sys_road"
                             :key="dict.value"
@@ -22,7 +22,7 @@
                     <img src="@/assets/images/lampPost/icon-1.png" alt="">
                     <div class="h-item-content">
                         <div class="val">
-                            <div class="num">1386</div>
+                            <div class="num">{{info.poleCount || 0}}</div>
                             <div class="symbol">杆</div>
                         </div>
                         <div class="label">灯杆总数</div>
@@ -32,7 +32,7 @@
                     <img src="@/assets/images/lampPost/icon-2.png" alt="">
                     <div class="h-item-content">
                         <div class="val">
-                            <div class="num">1386</div>
+                            <div class="num">{{info.combinedPoleCount || 0}}</div>
                             <div class="symbol">杆</div>
                         </div>
                         <div class="label">合杆总数</div>
@@ -44,7 +44,7 @@
                     <img src="@/assets/images/lampPost/icon-3.png" alt="">
                     <div class="h-item-content">
                         <div class="val">
-                            <div class="num">99%</div>
+                            <div class="num">{{info.percent || 0}}%</div>
                         </div>
                         <div class="label">挂载率</div>
                     </div>
@@ -53,7 +53,7 @@
                     <img src="@/assets/images/lampPost/icon-4.png" alt="">
                     <div class="h-item-content">
                         <div class="val">
-                            <div class="num">1535</div>
+                            <div class="num">{{info.totalCount || 0}}</div>
                             <div class="symbol">个</div>
                         </div>
                         <div class="label">总挂载数</div>
@@ -78,7 +78,7 @@
             </div>
             <div class="warning-wrap">
                 <img src="@/assets/images/lampPost/icon-5.png" alt="">
-                <span class="num">1267</span>
+                <span class="num">{{info.warningCount || 0}}</span>
                 <span class="label">报警总数</span>
             </div>
         </div>
@@ -105,118 +105,219 @@
                 <div class="lamp-post-dialog">
                     <div class="lamp-post-header">
                         <div class="tabs">
-                            <div class="tab active">灯杆</div>
+                            <div class="tab" :class="{active: detail_active === 0}"  @click="detailTabClick(0)">灯杆</div>
+                            <div class="tab" :class="{active: detail_active === index + 1}" @click="detailTabClick(index+1)" v-for="(item, index) in detail.slpOtherDeviceInfoList" :key="index">{{typeFormat(item.type)}}</div>
                         </div>
                         <div class="close">
                             <i class="el-icon-close" @click="visible = false"></i>
                         </div>
                     </div>
                     <div class="lamp-post-body">
-                        <div class="info">
-                            <el-row>
-                                <el-col :span="12">
-                                    <div class="row">
-                                        <label for="">设备型号:</label>
-                                        <span>智慧灯杆</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="12">
-                                    <div class="row">
-                                        <label for="">安装时间:</label>
-                                        <span>2020-04-12</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="12">
-                                    <div class="row">
-                                        <label for="">设备UID:</label>
-                                        <span>LD000001</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="12">
-                                    <div class="row">
-                                        <label for="">使用时长:</label>
-                                        <span>127天</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="12">
-                                    <div class="row">
-                                        <label for="">是否满载:</label>
-                                        <span>100%</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="12">
-                                    <div class="row">
-                                        <label for="">是否开灯:</label>
-                                        <span>是</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="24">
-                                    <div class="row">
-                                        <label for="">详细地址:</label>
-                                        <span>杭州市萧山区盈丰路</span>
-                                    </div>
-                                </el-col>
-                            </el-row>
-                        </div>
-                        <div class="info">
-                            <el-row>
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">养护部门:</label>
-                                        <span>城市管理养护部</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">安装部门:</label>
-                                        <span>城市管理养护部</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">产权部门:</label>
-                                        <span>钱江世纪城管委会</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">联系人:</label>
-                                        <span>王建国</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">联系人:</label>
-                                        <span>王建国</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">联系人:</label>
-                                        <span>李建华</span>
-                                    </div>
-                                </el-col>
+                        <template v-if="detail_active === 0">
+                            <div class="info">
+                                <el-row>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">设备型号:</label>
+                                            <span>{{detail.deviceModel}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">安装时间:</label>
+                                            <span>{{detail.installTime}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">设备UID:</label>
+                                            <span>{{detail.uid}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">使用时长:</label>
+                                            <span>127天</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">是否满载:</label>
+                                            <span>{{(((detail.slpOtherDeviceInfoList ? detail.slpOtherDeviceInfoList.length : 0 ) / detail.deviceMountingMax) * 100).toFixed(2)}}%</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">是否开灯:</label>
+                                            <span>是</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="24">
+                                        <div class="row">
+                                            <label for="">详细地址:</label>
+                                            <span>{{detail.address}}</span>
+                                        </div>
+                                    </el-col>
+                                </el-row>
+                            </div>
+                            <div class="info">
+                                <el-row>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">养护部门:</label>
+                                            <span>{{detail.maintainDepartment}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">安装部门:</label>
+                                            <span>{{detail.installDepartment}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">产权部门:</label>
+                                            <span>{{detail.propertyRightDepartment}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系人:</label>
+                                            <span>{{detail.maintainDepartmentName}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系人:</label>
+                                            <span>{{detail.installDepartmentName}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系人:</label>
+                                            <span>{{detail.propertyRightDepartmentName}}</span>
+                                        </div>
+                                    </el-col>
 
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">联系电话:</label>
-                                        <span>15824150021</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">联系电话:</label>
-                                        <span>15824150021</span>
-                                    </div>
-                                </el-col>
-                                <el-col :span="8">
-                                    <div class="row">
-                                        <label for="">联系电话:</label>
-                                        <span>15824150031</span>
-                                    </div>
-                                </el-col>
-                            </el-row>
-                        </div>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系电话:</label>
+                                            <span>{{detail.maintainDepartmentPhone}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系电话:</label>
+                                            <span>{{detail.installDepartmentPhone}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系电话:</label>
+                                            <span>{{detail.propertyRightDepartmentPhone}}</span>
+                                        </div>
+                                    </el-col>
+                                </el-row>
+                            </div>
+                        </template>
+                        <template v-for="(item,index) in detail.slpOtherDeviceInfoList">
+                            <div class="sub-model"  v-if="detail_active === index + 1" :key="index">
+                                <div class="info">
+                                <el-row>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">设备型号:</label>
+                                            <span>{{item.deviceModel}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">当前状态:</label>
+                                            <span :style="{color: item.enable == 1 ? '#05A75E' : '#EB0E1D'}">{{item.enable == 1 ? '正常运行' : '停用'}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">设备UID:</label>
+                                            <span>{{item.uid}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">使用时长:</label>
+                                            <span>127天</span>
+                                        </div>
+                                    </el-col>
+
+                                    <el-col :span="12">
+                                        <div class="row">
+                                            <label for="">安装时间:</label>
+                                            <span>{{new Date(item.installTime).Format('yyyy-MM-dd')}}</span>
+                                        </div>
+                                    </el-col>
+                                </el-row>
+                            </div>
+                            <div class="info">
+                                <el-row>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">养护部门:</label>
+                                            <span>{{item.maintainDepartment}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">安装部门:</label>
+                                            <span>{{item.installDepartment}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">产权部门:</label>
+                                            <span>{{item.propertyRightDepartment}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系人:</label>
+                                            <span>{{item.maintainDepartmentName}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系人:</label>
+                                            <span>{{item.installDepartmentName}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系人:</label>
+                                            <span>{{item.propertyRightDepartmentName}}</span>
+                                        </div>
+                                    </el-col>
+
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系电话:</label>
+                                            <span>{{item.maintainDepartmentPhone}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系电话:</label>
+                                            <span>{{item.installDepartmentPhone}}</span>
+                                        </div>
+                                    </el-col>
+                                    <el-col :span="8">
+                                        <div class="row">
+                                            <label for="">联系电话:</label>
+                                            <span>{{item.propertyRightDepartmentPhone}}</span>
+                                        </div>
+                                    </el-col>
+                                </el-row>
+                            </div>
+                            </div>
+                        </template>
                         <div class="btn-wrap">
                             <el-button type="primary" @click="handleView('lampPost')">查看详情</el-button>
                         </div>
@@ -227,14 +328,14 @@
     </div>
 </template>
 <script>
-import { getOverviewInfo,getMonitorDetailInMap } from "@/api/environment";
+import { getOverviewInfo } from "@/api/lampPost";
 
 import AMapLoader from '@amap/amap-jsapi-loader'
 window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
 export default {
-    dicts: ['sys_road'],
+    dicts: ['sys_road','sys_device_type'],
     data(){
         return {
             tabActive:1,
@@ -263,52 +364,24 @@ export default {
             },
             road:'',
             visible:false,
-            list:[{
-                label:'气象站',
-                total: 34,
-                online:30,
-                offline:4
-            },{
-                label:'摄像头',
-                total: 34,
-                online:30,
-                offline:4
-            },{
-                label:'灯杆倾斜传感器',
-                total: 34,
-                online:30,
-                offline:4
-            },{
-                label:'集中控制器',
-                total: 34,
-                online:30,
-                offline:4
-            },{
-                label:'网关',
-                total: 34,
-                online:30,
-                offline:4
-            },{
-                label:'单灯控制器',
-                total: 34,
-                online:30,
-                offline:4
-            },{
-                label:'多功能电能耐计量表',
-                total: 34,
-                online:30,
-                offline:4
-            },{
-                label:'灯具',
-                total: 34,
-                online:30,
-                offline:4
-            }],
+            list:[],
             markerList:[],
-            current:''
+            current:'',
+            detail:{},
+            detail_active:0
         }
     },
     methods:{
+        detailTabClick(index){
+            this.detail_active = index 
+        },
+        typeFormat(type){
+            return this.selectDictLabel(this.dict.type.sys_device_type, type);
+
+        },
+        roadChange(val){
+            this.getInfo();
+        },
         handleView(type){
             if (type == 'lampPost'){
                 this.$router.push('/lampPost/device')
@@ -343,13 +416,16 @@ export default {
             if (val === this.current) {
                 return;
             }
-            let list = JSON.parse(JSON.stringify(this.info.slpIntegratedManagementList))
+            let list = JSON.parse(JSON.stringify(this.info.slpPoleMainVoList))
             this.map.clearMap();
             this.current = val;
 
             if (val === '') {
                 list.forEach(item => {
-                    this.addMarker(item)
+                    if (item.latitude) {
+                        this.addMarker(item)
+
+                    }
                 })
                 this.$set(this, 'markerList', list)
                 return;
@@ -391,15 +467,44 @@ export default {
             });
         },
         getInfo(){
-            getOverviewInfo().then(res => {
+            getOverviewInfo({
+                road:this.road
+            }).then(res => {
                 if (res.code == 200) {
                     this.$set(this, 'info', res.data);
-                    let list = res.data.slpIntegratedManagementList;
+                    let list = res.data.slpPoleMainVoList;
                     this.$set(this, 'markerList', list)
                     if (this.AMap) {
                         list.forEach(item => {
-                            this.addMarker(item)
+                            if (item.latitude) {
+                                this.addMarker(item)
+                            }
                         });
+                    }
+
+                    let dataList = []
+                    if (res.data.slpOtherDeviceListVos) {
+                        res.data.slpOtherDeviceListVos.forEach((item, index) => {
+                            let online = 0
+                            let total = item.slpOtherDeviceInfoList.length || 0
+                            if (item.slpOtherDeviceInfoList){
+                                item.slpOtherDeviceInfoList.forEach(sub => {
+                                    if (sub.enable == 1) {
+                                        online++
+                                    }
+                                })
+                            }
+
+                            let offline = total - online;
+
+                            dataList.push({
+                                label: this.typeFormat(item.type),
+                                total: total,
+                                online: online,
+                                offline: offline
+                            })
+                        })
+                        this.$set(this,'list', dataList)
                     }
                 }
             })
@@ -410,10 +515,16 @@ export default {
                 map:this.map
             }).on('click', (event) => {
                 console.log(event, 'marker click')
-                this.visible = true
-                // this.getMonitorDetailInMap(item.id)
+                this.showDetail(item)
             })
         },
+        showDetail(detail){
+            this.$set(this, 'detail', detail)
+            this.$nextTick(() => {
+                this.visible = true
+
+            })
+        }
 
     },
     mounted(){
@@ -500,6 +611,7 @@ export default {
                             font-size: 20px;
                             font-weight: 400;
                             color: #A2A9BC;
+                            cursor: pointer;
 
                             &.active{
                                 background-color: #fff;

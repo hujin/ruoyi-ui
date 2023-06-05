@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function getOverviewInfo(){
     return request({
-        url:'/slp/slp/management/getOverviewInfo',
+        url:'/slp/slp/pole/getOverViewInfo',
         method:'get'
     })
 }
@@ -162,5 +162,53 @@ export function submitHandleResult(data){
         url:`/slp/slp/approval/submitHandleResult`,
         data,
         method:'post'
+    })
+}
+
+export function submitCheckHandleResult(data){
+    return request({
+        url:`/slp/slp/approval/submitCheckHandleResult`,
+        data,
+        method:'post'
+    })
+}
+
+export function getDeptOverview(params){
+    return request({
+        url:`/slp/slp/approval/report/getDeptOverview`,
+        params,
+        method:'get'
+    })
+}
+
+export function getDeptCreateStat(params){
+    return request({
+        url:`/slp/slp/approval/report/getDeptCreateStat`,
+        params,
+        method:'get'
+    })
+}
+
+export function getDeptApplyPropStat(params){
+    return request({
+        url:`/slp/slp/approval/report/getDeptApplyPropStat`,
+        params,
+        method:'get'
+    })
+}
+
+export function getDeptData(params){
+    return request({
+        url:`/slp/slp/approval/report/getDeptData`,
+        params,
+        method:'get'
+    })
+}
+
+export function getDeptApplyListPaged(params){
+    return request({
+        url:`/slp/slp/approval/report/getDeptApplyListPaged`,
+        params,
+        method:'get'
     })
 }

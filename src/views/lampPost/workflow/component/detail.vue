@@ -119,10 +119,10 @@
                                     <div class="label">复核结果</div>
                                     <div class="val">
                                         <div style="margin-bottom:16px">
-                                            <el-link type="success" :underline="false">{{detail.workOrderCheckResult.handleResultType}}</el-link>
+                                            <el-link type="success" :underline="false">{{detail.workOrderCheckResult.handleResultTypeDesc}}</el-link>
                                         </div>
                                         <div style="margin-bottom:16px">
-                                            <div class="remark">{{detail.handleResultContent}}</div>
+                                            <div class="remark">{{detail.workOrderCheckResult.handleResultContent}}</div>
                                         </div>
                                         <div class="img-list">
                                             <div class="img-item" v-for="(item,index) in detail.workOrderCheckResult.handleResultFile" :key="index"></div>

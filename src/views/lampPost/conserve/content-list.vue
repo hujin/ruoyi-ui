@@ -112,6 +112,9 @@
                         placeholder="选择日期时间">
                     </el-date-picker>
                 </el-form-item>
+                <el-form-item label="养护时长">
+                    <el-input placeholder="请输入养护时长"></el-input>
+                </el-form-item>
                 <el-form-item label="关联灯杆">
                     <el-select v-model="form.device_id" style="width:100%"></el-select>
                 </el-form-item>
