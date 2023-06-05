@@ -334,6 +334,9 @@ import AMapLoader from '@amap/amap-jsapi-loader'
 window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
+
+let markerIcon = require('@/assets/images/lampPost/marker.png')
+
 export default {
     dicts: ['sys_road','sys_device_type'],
     data(){
@@ -421,21 +424,21 @@ export default {
             this.current = val;
 
             if (val === '') {
-                list.forEach(item => {
-                    if (item.latitude) {
-                        this.addMarker(item)
+                // list.forEach(item => {
+                //     if (item.latitude) {
+                //         this.addMarker(item)
 
-                    }
-                })
+                //     }
+                // })
+
+                this.initMarker(list)
                 this.$set(this, 'markerList', list)
                 return;
             }
             let result = list.filter(item => {
                 return item.status === val
             })
-            result.forEach(item => {
-                this.addMarker(item)
-            })
+            this.initMarker(result)
             this.$set(this, 'markerList', result)
 
         },
@@ -449,7 +452,7 @@ export default {
             AMapLoader.load({
                 "key": "df32d1c57071a49dc07d45dbaad7cdbd", 
                 "version": "1.4.15",   // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-                "plugins": ['AMap.Icon','AMap.Marker'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+                "plugins": ['AMap.Icon','AMap.Marker','AMap.LabelsLayer', 'AMap.LabelMarker'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
             }).then((AMap)=>{
                 // 初始化地图
                 this.AMap = AMap;
@@ -457,10 +460,15 @@ export default {
                     viewMode : "2D",  //  是否为3D地图模式
                     zoom : 13,   // 初始化地图级别
                     center : [120.252635, 30.236056], //中心点坐标  郑州
-                    resizeEnable: true
+                    resizeEnable: true,
+                    pitch:60
                 });
 
-                this.getInfo();
+                this.map.on('complete', () => {
+                    this.getInfo();
+
+                })
+
 
             }).catch(e => {
                 console.log(e);
@@ -474,13 +482,16 @@ export default {
                     this.$set(this, 'info', res.data);
                     let list = res.data.slpPoleMainVoList;
                     this.$set(this, 'markerList', list)
-                    if (this.AMap) {
-                        list.forEach(item => {
-                            if (item.latitude) {
-                                this.addMarker(item)
-                            }
-                        });
-                    }
+                    // if (this.AMap) {
+                        this.$nextTick(() => {
+                            this.initMarker(list)
+                        })
+                        // list.forEach(item => {
+                        //     if (item.latitude) {
+                        //         this.addMarker(item)
+                        //     }
+                        // });
+                    // }
 
                     let dataList = []
                     if (res.data.slpOtherDeviceListVos) {
@@ -509,6 +520,46 @@ export default {
                 }
             })
         },
+        initMarker(list){
+            let layer = new this.AMap.LabelsLayer({
+                    zooms: [3, 20],
+                    zIndex: 111,
+                    animation: false,
+                    collision: false
+            })
+            let markers = []
+            var icon = {
+                type: 'image',
+                image: markerIcon,
+                size: [24, 24],
+                anchor: 'bottom-center',
+                angel: 0,
+                retina: true
+            };
+            for (let i = 0; i < list.length;i++) {
+                let item = list[i]
+                if (item.latitude) {
+                    let currentPosition = {
+                        position:[item.longitude, item.latitude],
+                        icon
+                    }
+
+                    let labelMarker = new this.AMap.LabelMarker(currentPosition)
+
+                    labelMarker.on('click', (event) => {
+                        this.showDetail(item)
+                    })
+
+                    markers.push(labelMarker)
+
+                }
+            }
+
+            layer.add(markers)
+            this.map.add(layer)
+            console.timeEnd('a')
+
+        },
         addMarker(item){
             new this.AMap.Marker({
                 position:[item.longitude, item.latitude],
@@ -528,6 +579,7 @@ export default {
 
     },
     mounted(){
+        console.time('a')
         this.initMap();
 
     }
