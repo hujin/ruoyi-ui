@@ -41,6 +41,8 @@ export default {
       sideTheme: state => state.settings.sideTheme,
       sidebar: state => state.app.sidebar,
       device: state => state.app.device,
+      deptList: state => state.app.deptList,
+      userList: state => state.app.userList,
       needTagsView: state => state.settings.tagsView,
       fixedHeader: state => state.settings.fixedHeader
     }),
@@ -56,10 +58,28 @@ export default {
       return variables;
     }
   },
+  provide() {
+    return {
+      getDeptNameById: this.getDeptNameById,
+      getUserNameById: this.getUserNameById,
+    };
+  },
   methods: {
     handleClickOutside() {
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
-    }
+    },
+    getDeptNameById(id){
+      const target = this.deptList.find(item => item.deptId == id) || {}
+      return target.deptName || ''
+    },
+    getUserNameById(id){
+      const target = this.userList.find(item => item.userId == id) || {}
+      return target.nickName || ''
+    },
+  },
+  created(){
+    this.$store.dispatch('app/getDepartment')
+    this.$store.dispatch('app/getUserList')
   }
 }
 </script>
