@@ -223,6 +223,9 @@ import AMapLoader from '@amap/amap-jsapi-loader'
 window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
+
+let markerIcon = require('@/assets/images/willLid/marker.png')
+
 export default {
     dicts: ['sys_road','sys_roadside'],
     data(){
@@ -299,9 +302,7 @@ export default {
             this.current = val;
 
             if (val === '') {
-                list.forEach(item => {
-                    this.addMarker(item)
-                })
+                this.initMarker(list)
                 this.$set(this, 'markerList', list)
                 return;
             }
@@ -325,9 +326,9 @@ export default {
                 })
             }
            
-            result.forEach(item => {
-                this.addMarker(item)
-            })
+          
+            this.initMarker(result)
+
             this.$set(this, 'markerList', result)
         },
          addMarker(item){
@@ -374,7 +375,7 @@ export default {
             AMapLoader.load({
                 "key": "df32d1c57071a49dc07d45dbaad7cdbd", 
                 "version": "1.4.15",   // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-                "plugins": ['AMap.Icon','AMap.Marker'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+                "plugins": ['AMap.Icon','AMap.Marker','AMap.LabelsLayer', 'AMap.LabelMarker'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
             }).then((AMap)=>{
                 // 初始化地图
                 this.AMap = AMap;
@@ -384,7 +385,10 @@ export default {
                     center : [120.252635, 30.236056], //中心点坐标  郑州
                     resizeEnable: true
                 });
-                this.getInfo();
+                 this.map.on('complete', () => {
+                    this.getInfo();
+
+                })
 
             }).catch(e => {
                 console.log(e);
@@ -398,20 +402,63 @@ export default {
                 if (res.code == 200) {
                     this.$set(this, 'info', res.data);
                     let list = res.data.slpManholeCoverList;
-                    if (this.AMap) {
-                        list.forEach(item => {
-                            console.log(item.longitude, item.latitude)
-                            new this.AMap.Marker({
-                                position:[item.longitude, item.latitude],
-                                map:this.map
-                            }).on('click', (event) => {
-                                console.log(event, 'marker click')
-                                this.getMonitorDetailInMap(item.id)
-                            })
-                        });
-                    }
+                    this.$nextTick(() => {
+                            this.initMarker(list)
+                    })
+                    // if (this.AMap) {
+                    //     list.forEach(item => {
+                    //         console.log(item.longitude, item.latitude)
+                    //         new this.AMap.Marker({
+                    //             position:[item.longitude, item.latitude],
+                    //             map:this.map
+                    //         }).on('click', (event) => {
+                    //             console.log(event, 'marker click')
+                    //             this.getMonitorDetailInMap(item.id)
+                    //         })
+                    //     });
+                    // }
                 }
             })
+        },
+        initMarker(list){
+            let layer = new this.AMap.LabelsLayer({
+                    zooms: [3, 20],
+                    zIndex: 111,
+                    animation: false,
+                    collision: false
+            })
+            let markers = []
+            var icon = {
+                type: 'image',
+                image: markerIcon,
+                size: [24, 24],
+                anchor: 'bottom-center',
+                angel: 0,
+                retina: true
+            };
+            for (let i = 0; i < list.length;i++) {
+                let item = list[i]
+                if (item.latitude) {
+                    let currentPosition = {
+                        position:[item.longitude, item.latitude],
+                        icon
+                    }
+
+                    let labelMarker = new this.AMap.LabelMarker(currentPosition)
+
+                    labelMarker.on('click', (event) => {
+                        this.getMonitorDetailInMap(item.id)
+                    })
+
+                    markers.push(labelMarker)
+
+                }
+            }
+
+            layer.add(markers)
+            this.map.add(layer)
+            console.timeEnd('a')
+
         },
         getMonitorDetailInMap(id){
             getMonitorDetailInMap(id).then(res => {
