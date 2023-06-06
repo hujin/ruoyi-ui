@@ -234,3 +234,19 @@ export function getWorkOrderCountStat(params){
         params
     })
 }
+
+export function getConserveApplyList(params){
+    return request({
+        url:`/slp/slp/pole/report/list`,
+        method:'get',
+        params
+    })
+}
+
+export function addComserveApply(data){
+    return request({
+        url:`/slp/slp/pole/report/add`,
+        data,
+        method:'post'
+    })
+}

@@ -196,9 +196,12 @@ import { getDeviceList,
          addDevice,
          deleteDevice } from "@/api/video";
 
+import { getWarningHandleList } from "@/api/hydrops";
+
 import selectMap from '@/components/select-map/index.vue'
 
 export default {
+    dicts: ['sys_road','sys_roadside'],
     components:{
         selectMap
     },
@@ -355,7 +358,7 @@ export default {
             }).catch(() => {});
         },
         getList(){
-            getDeviceList(this.queryParams).then(res => {
+            getWarningHandleList(this.queryParams).then(res => {
                 if (res.code == 200) {
                     this.list = res.rows;
                     this.total = res.total

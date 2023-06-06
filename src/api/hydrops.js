@@ -211,7 +211,6 @@ export function deleteRule(ids){
     })
 }
 
-
 export function getWarningLevelList(params){
     return request({
         url:'/slp/slp/warning/level/config/list',
@@ -247,5 +246,28 @@ export function deleteWarningLevel(ids){
     return request({
         url:`/slp/slp/warning/level/config/${ids}`,
         method:'delete'
+    })
+}
+
+export function getWarningList(params){
+    return request({
+        url:'/slp/slp/ponding/warning/list',
+        params,
+        method:'get'
+    })
+}
+
+export function getWarningDetail(params){
+    return request({
+        url:`/slp/slp/ponding/warning/${params.id}`,
+        method:'get'
+    })
+}
+
+export function getWarningHandleList(params){
+    return request({
+        url:'/slp/slp/ponding/warning/handledList',
+        params,
+        method:'get'
     })
 }

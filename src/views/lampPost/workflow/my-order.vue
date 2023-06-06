@@ -39,7 +39,8 @@
                 <div class="grid-wrap">
                     <el-table ref="tables" style="width:100%;height:100%" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
                         <el-table-column type="selection" width="50" align="center" />
-                        <el-table-column label="序号" align="center"  prop="id"  />
+                        <el-table-column type="index" label="序号" width="50" align="center" />
+
                         <el-table-column label="工单号" align="center"  prop="workOrderNo" width="200px"  />
                         <el-table-column label="设备类型" align="center"  prop="applyTypeDesc" width="100px" />
                         <el-table-column label="内容描述" align="center"  prop="applyContent" width="200px"  />

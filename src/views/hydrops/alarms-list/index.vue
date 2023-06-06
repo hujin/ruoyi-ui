@@ -208,9 +208,13 @@ import { getDeviceList,
          addDevice,
          deleteDevice } from "@/api/video";
 
+import { getWarningList,
+         getWarningDetail } from "@/api/hydrops";
+
 import selectMap from '@/components/select-map/index.vue'
 
 export default {
+    dicts: ['sys_road','sys_roadside'],
     components:{
         selectMap
     },
@@ -299,7 +303,7 @@ export default {
             this.mapDialog = false
         },
         handleView(row){
-            getDeviceDetail(row.id).then(res => {
+            getWarningDetail(row.id).then(res => {
                 this.$set(this, 'form', res.data);
                 this.state = 'view'
                 this.open = true
@@ -367,7 +371,7 @@ export default {
             }).catch(() => {});
         },
         getList(){
-            getDeviceList(this.queryParams).then(res => {
+            getWarningList(this.queryParams).then(res => {
                 if (res.code == 200) {
                     this.list = res.rows;
                     this.total = res.total

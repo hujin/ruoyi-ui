@@ -49,7 +49,8 @@
                 <div class="grid-wrap">
                     <el-table ref="tables" style="width:100%;height:100%" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
                         <el-table-column type="selection" width="50" align="center" />
-                        <el-table-column label="序号" align="center"  prop="id"  />
+                        <el-table-column type="index" label="序号" width="50" align="center" />
+
                         <el-table-column label="申请内容" align="center"  prop="applyContent"  />
                         <el-table-column label="申请时间" align="center"  prop="applyTime" width="200px" >
                              <template slot-scope="scope">
