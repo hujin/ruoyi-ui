@@ -4,25 +4,23 @@
             <div class="c-content">
                 
                 <div class="grid-wrap">
-                    <el-table ref="tables" style="width:100%;height:100%" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
-                        <el-table-column type="selection" width="50" align="center" />
-                        <el-table-column label="巡查时间" align="center"  prop="name"  />
-                        <el-table-column label="内容描述" align="center"  prop="name"  />
-                        <el-table-column label="巡查单位" align="center"  prop="name"  />
-                        <el-table-column label="巡查人" align="center"  prop="name"  />
-                        <el-table-column label="巡查地点" align="center"  prop="name"  />
-                        <el-table-column label="巡查类别" align="center"  prop="name"  />
-                        <el-table-column label="关联灯杆" align="center"  prop="name"  />
-                        <el-table-column label="生成时间" align="center"  prop="name"  />
-                        <el-table-column label="操作" align="center" >
+                    <el-table ref="tables" style="width:100%;height:100%" v-loading="loading" :data="list" >
+                        <el-table-column label="序号" align="center"  prop="id" width="50" />
+                        <el-table-column label="巡检时间" align="center"  prop="inspectionTime"  />
+                        <el-table-column label="内容描述" align="center"  prop="remark"  />
+                        <el-table-column label="巡检单位" align="center"  prop="inspectionDepartment"  />
+                        <el-table-column label="巡检人" align="center"  prop="inspectionDepartmentName"  />
+                        <el-table-column label="巡检地点" align="center"  prop="inspectionAddress"  >
                             <template slot-scope="scope">
-                                <el-button
-                                    size="mini"
-                                    type="text"
-                                    @click="handleDelete(scope.row)"
-                                >删除</el-button>
-                            </template>
+                                <div style="display:flex;align-items:center">
+                                    <div style="white-space:nowrap">{{scope.row.inspectionAddress}}</div>
+                                    <i @click="openMap(scope.row)" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
+                                </div>
+                        </template>
                         </el-table-column>
+                        <el-table-column label="巡检类别" align="center"  prop="inspectionTypeStr"  />
+                        <el-table-column label="关联灯杆" align="center"  prop="poleInfo"  />
+                        <el-table-column label="生成时间" align="center"  prop="createTime"  />
                     </el-table>
                 </div>
                 <pagination
@@ -33,6 +31,8 @@
                     @pagination="getList"
                 />
             </div>
+        <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
+
         </div>
        
     </div>
@@ -40,7 +40,21 @@
 <script>
 import { getToken } from "@/utils/auth";
 
+import showMap from '@/components/show-map/index.vue'
+
+
+import { getConserveApplyList } from "@/api/lampPost";
+
+import Treeselect from "@riophae/vue-treeselect";
+import { listUser } from "@/api/system/user";
+import { listDept } from "@/api/system/dept";
+
 export default {
+    dicts: ['sys_road','sys_roadside','sys_device_type', 'sys_lamp_post_inspect_type'],
+    components:{
+        showMap,
+        Treeselect
+    },
     data(){
         return {
             loading: false,
@@ -49,30 +63,29 @@ export default {
                 pageNum:1,
                 pageSize:20
             },
-            ids:[],
             list:[],
-            
+            showMapState:false,
+            showMapLongitude:'',
+            showMapLatitude:'',
         }
     },
     methods:{
-        handleExport(){
+         openMap(row){
+            this.showMapLatitude = row.latitude
+            this.showMapLongitude = row.longitude
 
-        },
-        handleMultDelete(){
-
-        },
-        handleAdd(){
-
-        },
-        handleDelete(){
-
-        },
-        handleSelectionChange(selection) {
-            this.ids = selection.map(item => item.id);
+            this.showMapState = true
         },
         getList(){
-
+            getConserveApplyList({id:this.$route.query.id}).then(res => {
+                if (res.code == 200) {
+                    this.list =res.rows
+                }
+            })
         }
+    },
+    created(){
+        this.getList()
     }
 }
 </script>

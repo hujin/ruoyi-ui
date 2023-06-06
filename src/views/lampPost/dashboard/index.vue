@@ -383,7 +383,10 @@ export default {
 
         },
         roadChange(val){
+            this.$nextTick(() => {
             this.getInfo();
+
+            })
         },
         handleView(type){
             if (type == 'lampPost'){
@@ -475,6 +478,7 @@ export default {
             });
         },
         getInfo(){
+            console.log(this.road)
             getOverviewInfo({
                 road:this.road
             }).then(res => {
@@ -482,6 +486,7 @@ export default {
                     this.$set(this, 'info', res.data);
                     let list = res.data.slpPoleMainVoList;
                     this.$set(this, 'markerList', list)
+
                     // if (this.AMap) {
                         this.$nextTick(() => {
                             this.initMarker(list)
@@ -521,6 +526,8 @@ export default {
             })
         },
         initMarker(list){
+            // this.map.clearMap();
+            console.log(this.map.layer)
             let layer = new this.AMap.LabelsLayer({
                     zooms: [3, 20],
                     zIndex: 111,

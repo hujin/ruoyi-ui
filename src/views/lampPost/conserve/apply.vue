@@ -53,8 +53,8 @@
                         <el-table-column label="序号" align="center"  prop="id" width="50" />
                         <el-table-column label="巡检时间" align="center"  prop="inspectionTime"  />
                         <el-table-column label="内容描述" align="center"  prop="remark"  />
-                        <el-table-column label="巡检单位" align="center"  prop="inspectionDepartment"  />
-                        <el-table-column label="巡检人" align="center"  prop="inspectionDepartmentName"  />
+                        <el-table-column label="巡检单位" align="center"  prop="inspectionUserDept"  />
+                        <el-table-column label="巡检人" align="center"  prop="inspectionUserName"  />
                         <el-table-column label="巡检地点" align="center"  prop="inspectionAddress"  >
                             <template slot-scope="scope">
                                 <div style="display:flex;align-items:center">
@@ -90,19 +90,39 @@
         <el-dialog title="巡查上报" width="512px" :visible.sync="dialogState">
             <el-form ref="form" :model="form" label-width="100px">
                 <el-form-item label="巡检单位:">
-                    <el-select v-model="form.depart" style="width:100%"></el-select>
+                    <treeselect v-model="form.inspectionDepartment" :options="deptOptions" :normalizer="normalizer" placeholder="请选择养护部门" />               
+
                 </el-form-item>
                 <el-form-item label="巡检人:">
-                    <el-select v-model="form.person"  style="width:100%"></el-select>
+                    <el-select v-model="form.inspectionUserId"  style="width:100%">
+                        <el-option
+                                v-for="dict in inspectUserList"
+                                :key="dict.userId"
+                                :label="dict.nickName"
+                                :value="dict.userId"/>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="巡检类别:">
-                    <el-select v-model="form.type"  style="width:100%"></el-select>
+                    <el-select v-model="form.inspectionTypeStr"  style="width:100%">
+                        <el-option
+                            v-for="dict in dict.type.sys_lamp_post_inspect_type"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="计划名称">
-                    <el-input v-model="form.plan_name"  style="width:100%"></el-input>
+                    <el-select v-model="form.planId" style="width:100%">
+                        <el-option
+                                v-for="dict in planList"
+                                :key="dict.id"
+                                :label="dict.planName"
+                                :value="dict.id"/>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="内容描述">
-                    <el-input type="textarea" v-model="form.remark"  style="width:100%"></el-input>
+                    <el-input type="textarea" placeholder="请输入内容描述" v-model="form.remark"  style="width:100%"></el-input>
                 </el-form-item>
                 <el-form-item label="">
                     <el-upload
@@ -110,7 +130,9 @@
                         :action="uploadFileUrl"
                         :before-remove="handleFileRemove"
                         :on-success="handleFileSuccess"
-                        :file-list="fileList"></el-upload>
+                        :file-list="fileList">
+                            <el-button size="small" type="primary">上传文件</el-button>
+                        </el-upload>
                 </el-form-item>
                 <el-form-item label="巡检道路">
                     <el-select v-model="form.road"  style="width:100%">
@@ -123,7 +145,7 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="详细地址">
-                    <el-input v-model="form.address"  style="width:100%"></el-input>
+                    <el-input v-model="form.address" placeholder="请输入详细地址"  style="width:100%"></el-input>
                 </el-form-item>
                 <el-form-item label="巡检时间">
                     <el-date-picker
@@ -133,8 +155,11 @@
                         placeholder="选择日期时间">
                     </el-date-picker>
                 </el-form-item>
+                <el-form-item label="巡检时长">
+                    <el-input v-model="form.maintainHour" placeholder="请输入巡检时长"></el-input>
+                </el-form-item>
                 <el-form-item label="灯杆道路">
-                    <el-select v-model="form.poleRoad"  style="width:100%">
+                    <el-select v-model="form.poleRoad"  style="width:100%" @change="poleRoadChange">
                         <el-option
                             v-for="dict in dict.type.sys_road"
                             :key="dict.value"
@@ -144,9 +169,20 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="关联灯杆">
-                    <el-select v-model="form.device_id"  style="width:100%"></el-select>
+                    <el-select v-model="form.poleId"  style="width:100%">
+                        <el-option
+                            v-for="dict in lampPostList"
+                            :key="dict.id"
+                            :label="dict.name + dict.id"
+                            :value="dict.id"
+                        />
+                    </el-select>
                 </el-form-item>
             </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="submitForm">确 定</el-button>
+                <el-button @click="cancel">取 消</el-button>
+            </div>
         </el-dialog>
         <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
     </div>
@@ -154,10 +190,12 @@
 <script>
 import { getToken } from "@/utils/auth";
 
+import {getConservePlanList, 
+        getDeviceList,
+        getConserveApplyList,
+        deleteComserveApply,
+        addComserveApply } from "@/api/lampPost";
 import showMap from '@/components/show-map/index.vue'
-
-
-import { getConserveApplyList } from "@/api/lampPost";
 
 import Treeselect from "@riophae/vue-treeselect";
 import { listUser } from "@/api/system/user";
@@ -183,16 +221,20 @@ export default {
             list:[],
             dialogState:false,
             form:{
-                depart:'',
-                person:'',
-                type:'',
-                plan_name:'',
+                planId:'',
                 remark:'',
-                img_list:[],
+                inspectionTypeStr:'',
                 road:'',
-                address:'',
-                time:'',
-                device_id:''
+                inspectionAddress:'',
+                inspectionTime:'',
+                maintainHour:'',
+                poleId:'',
+                uid:'',
+                status:'',
+                inspectionUserId:'',
+                inspectionDepartment: undefined,
+                inspectionName:'',
+                slpInspectionPlanImgList:[]
             },
             uploadList: [],
             uploadFileUrl: process.env.VUE_APP_BASE_API + "/file/upload", // 上传文件服务器地址
@@ -200,36 +242,104 @@ export default {
                 Authorization: "Bearer " + getToken(),
             },
             fileList: [],
-             showMapState:false,
+            showMapState:false,
             showMapLongitude:'',
             showMapLatitude:'',
+            planList:[],
+            deptOptions: [],
+            inspectUserList:[],
+            lampPostList:[]
         }
     },
+     watch:{
+        'form.inspectionDepartment'(val){
+            console.log(val)
+            if (val) {
+                listUser({
+                    deptId:val,
+                    pageNum:1,
+                    pageSize:9999
+                }).then(res => {
+                    if (res.code == 200) {
+                        this.$set(this, 'inspectUserList', res.rows || [])
+                    }
+                })
+            }
+        },
+    },
     methods:{
+         initDept(){
+            listDept().then(response => {
+                this.deptOptions = this.handleTree(response.data, "deptId");
+            });
+        },
+        /** 转换部门数据结构 */
+        normalizer(node) {
+            if (node.children && !node.children.length) {
+                delete node.children;
+            }
+            return {
+                id: node.deptId,
+                label: node.deptName,
+                children: node.children
+            };
+        },
+       
+        poleRoadChange(val){
+            if (val) {
+                getDeviceList({
+                    pageSize:99999,
+                    pageNum:1,
+                    road:val
+                }).then(res => {
+                    if (res.code == 200) {
+                        this.$set(this, 'lampPostList', res.rows)
+                    }
+                })
+            }
+        },
+        submitForm(){
+             this.$refs["form"].validate(valid => {
+                if (valid) {
+                    let form = JSON.parse(JSON.stringify(this.form))
+                        addComserveApply(form).then(res => {
+                            if (res.code === 200) {
+                                this.$modal.msgSuccess("操作成功");
+                                this.dialogState = false
+                                this.getList();
+                            }
+                        })
+                    
+                }
+            });
+        },
+        cancel(){
+            this.dialogState = false
+        },
         openMap(row){
             this.showMapLatitude = row.latitude
             this.showMapLongitude = row.longitude
 
             this.showMapState = true
         },
-        handleFileRemove(file, filelist){
+         handleFileRemove(file, filelist){
             if (file.response.code == 200) {
                 let index = null
                 let fileUrl = file.response.data.url;
-                this.form.img_list.forEach((url,i) => {
-                    if (fileUrl == url) {
+                this.form.slpInspectionPlanImgList.forEach((item,i) => {
+                    if (fileUrl == item.imgUrl) {
                         index = i
                     }
                 })
 
                 if (index != null) {
-                    this.form.img_list.splice(index, 1)
+                    this.form.slpInspectionPlanImgList.splice(index, 1)
                 }
             }
         },
         handleFileSuccess(res, file, filelist){
             if (res.code == 200) {
-                this.form.img_list.push(res.data.url)
+                this.form.slpInspectionPlanImgList.push({ imgUrl: res.data.url})
             }
         },
         roadFormat(row) {
@@ -257,29 +367,69 @@ export default {
 
         },
         handleMultDelete(){
+            if (this.ids.length == 0) {
+                this.$modal.msgError("请选择需要删除的数据");
+                return
+            }
 
+            this.$modal.confirm('是否确认删除该数据吗？').then(() => {
+                return deleteComserveApply(this.ids.join(','));
+            }).then(() => {
+                this.getList();
+                this.$modal.msgSuccess("删除成功");
+            }).catch(() => {});
         },
         handleAdd(){
-            this.dialogState = true
+
+            getConservePlanList({
+                pageNum:1,
+                pageSize:99999,
+                status:1
+            }).then(res => {
+                if (res.code == 200) {
+                    this.$set(this, 'planList', res.rows)
+
+                    this.dialogState = true
+                }
+            })
         },
         handleDelete(){
-
+            this.$modal.confirm('是否确认删除该数据吗？').then(function() {
+                return deleteComserveApply(row.id);
+            }).then(() => {
+                this.getList();
+                this.$modal.msgSuccess("删除成功");
+            }).catch(() => {});
         },
         handleSelectionChange(selection) {
             this.ids = selection.map(item => item.id);
+        },
+        handleAdd(){
+
+            getConservePlanList({
+                pageNum:1,
+                pageSize:99999,
+                status:1
+            }).then(res => {
+                if (res.code == 200) {
+                    this.$set(this, 'planList', res.rows)
+
+                    this.dialogState = true
+                }
+            })
         },
         getList(){
             let params = {
                 pageNum: this.queryParams.pageNum,
                 pageSize: this.queryParams.pageSize,
-                inspectionStartTime:'',
-                inspectionEndTime:'',
+                startTime:'',
+                endTime:'',
                 road: this.queryParams.road
             }
 
             if (this.queryParams.time.length > 0) {
-                params.inspectionStartTime = this.queryParams.time[0]
-                params.inspectionEndTime = this.queryParams.time[1]
+                params.startTime = this.queryParams.time[0]
+                params.endTime = this.queryParams.time[1]
             }
 
             getConserveApplyList(params).then(res => {
@@ -291,6 +441,7 @@ export default {
         }
     },
     created(){
+        this.initDept()
         this.getList()
     }
 }

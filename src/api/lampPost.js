@@ -1,9 +1,10 @@
 import request from '@/utils/request'
 
-export function getOverviewInfo(){
+export function getOverviewInfo(params){
     return request({
         url:'/slp/slp/pole/getOverViewInfo',
-        method:'get'
+        method:'get',
+        params
     })
 }
 
@@ -245,8 +246,95 @@ export function getConserveApplyList(params){
 
 export function addComserveApply(data){
     return request({
-        url:`/slp/slp/pole/report/add`,
+        url:`/slp/slp/pole/report`,
         data,
         method:'post'
+    })
+}
+
+export function deleteComserveApply(ids){
+    return request({
+        url:`/slp/slp/pole/report/${ids}`,
+        method:'delete'
+    })
+}
+
+export function getConservePlanList(params){
+    return request({
+        url:`/slp/slp/plan/list`,
+        method:'get',
+        params
+    })
+}
+
+
+export function addPlan(data){
+    return request({
+        url:`/slp/slp/plan`,
+        data,
+        method:'post'
+    })
+}
+
+export function editPlan(data){
+    return request({
+        url:`/slp/slp/plan`,
+        data,
+        method:'put'
+    })
+}
+
+export function getPlanDetail(id){
+    return request({
+        url:`/slp/slp/plan/${id}`,
+        method:'get',
+    })
+}
+
+export function deletePlan(ids){
+    return request({
+        url:`/slp/slp/plan/${ids}`,
+        method:'delete'
+    })
+}
+
+
+
+export function getContentList(params){
+    return request({
+        url:`/slp/slp/content/list`,
+        method:'get',
+        params
+    })
+}
+
+
+export function addContent(data){
+    return request({
+        url:`/slp/slp/content`,
+        data,
+        method:'post'
+    })
+}
+
+export function editContent(data){
+    return request({
+        url:`/slp/slp/content`,
+        data,
+        method:'put'
+    })
+}
+
+export function getContent(id){
+    return request({
+        url:`/slp/slp/content/${id}`,
+        method:'get',
+    })
+}
+
+export function deleteContent(ids){
+    return request({
+        url:`/slp/slp/content/${ids}`,
+        method:'delete'
     })
 }
