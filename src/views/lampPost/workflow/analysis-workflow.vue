@@ -73,8 +73,13 @@ export default {
     data(){
         return {
             chart1:null,
+            xAxis1:[],
+            yAxis1:[],
             chart2:null,
+            yAxis2:[],
             chart3:null,
+            xAxis3:[],
+            yAxis3:[],
             queryForm:{
                 time:[],
                 statType:'本月'
@@ -96,7 +101,7 @@ export default {
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
-                        data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月']
+                        data: this.xAxis1
                     },
                     yAxis: {
                         type: 'value'
@@ -109,7 +114,7 @@ export default {
                     },
                     series: [
                         {
-                            data: [820, 932, 901, 934, 1290, 1330, 1320],
+                            data: this.yAxis1,
                             type: 'line',
                             areaStyle: {
                                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -145,13 +150,7 @@ export default {
                         itemStyle: {
                             borderRadius: 0
                         },
-                        data: [
-                            { value: 40, name: 'A单位' },
-                            { value: 38, name: 'B单位' },
-                            { value: 32, name: 'C单位' },
-                            { value: 30, name: 'D单位' },
-                            { value: 28, name: 'E单位' },
-                        ]
+                        data: this.yAxis2
                     }
                 ]
             };
@@ -180,12 +179,7 @@ export default {
                         itemStyle: {
                             borderRadius: 0
                         },
-                        data: [
-                            { value: 40, name: 'A类' },
-                            { value: 38, name: 'B类' },
-                            { value: 32, name: 'C类' },
-                            { value: 30, name: 'D类' },
-                        ]
+                        data: this.yAxis3
                     }
                 ]
             };
@@ -220,7 +214,24 @@ export default {
                 params.statType = 'YEAR'
             }
             getDeptCreateStat(params).then(res => {
+                 if (res.code == 200) {
+                    if (res.data) {
+                        let xAxis1 = [];
+                        let yAxis1 = [];
+                        res.data.forEach(item => {
+                            xAxis1.push(item.timeStr)
 
+                            yAxis1.push(item.value)
+                        })
+
+                        this.$set(this, 'xAxis1', xAxis1)
+                        this.$set(this, 'yAxis1', yAxis1)
+
+                        this.$nextTick(() => {
+                            this.initChart1()
+                        })
+                    }
+                 }
             })
         },
         getDeptApplyPropStat(){
@@ -241,7 +252,37 @@ export default {
                 params.statType = 'YEAR'
             }
             getDeptApplyPropStat(params).then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        if (res.data.applyCountList) {
+                            let yAxis2 = [];
+                            res.data.applyCountList.forEach(item => {
+                                yAxis2.push({
+                                    value: item.times, name: item.name
+                                })
+                            })
 
+                            this.$set(this, 'yAxis2', yAxis2)
+                            this.$nextTick(() => {
+                                this.initChart2()
+                            })
+                        }
+
+                        if (res.data.applyTypeCountList) {
+                            let yAxis3 = [];
+                            res.data.applyCountList.forEach(item => {
+                                yAxis3.push({
+                                    value: item.times, name: item.name
+                                })
+                            })
+
+                            this.$set(this, 'yAxis3', yAxis3)
+                            this.$nextTick(() => {
+                                this.initChart3()
+                            })
+                        }
+                    }
+                }
             })
         }
     },
@@ -249,9 +290,6 @@ export default {
         this.getDeptOverview();
         this.getDeptCreateStat();
         this.getDeptApplyPropStat();
-        this.initChart1()
-        this.initChart2()
-        this.initChart3()
     }
 }
 </script>

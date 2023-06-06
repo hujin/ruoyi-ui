@@ -152,6 +152,9 @@
                 <el-option label="申请单位"
                             value="APPLY"
                     />
+                <el-option label="巡检单位"
+                            value="INSPECTION"
+                    />
               </el-select>
             </el-form-item>
           </el-col>
