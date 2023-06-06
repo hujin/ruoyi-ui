@@ -212,3 +212,25 @@ export function getDeptApplyListPaged(params){
         method:'get'
     })
 }
+
+export function getDeviceUseStatOverview(){
+    return request({
+        url:`/slp/slp/approval/report/getDeviceUseStatOverview`,
+        method:'get'
+    })
+}
+
+export function getWorkOrderStatOverview(){
+    return request({
+        url:`/slp/slp/approval/report/getWorkOrderStatOverview`,
+        method:'get'
+    })
+}
+
+export function getWorkOrderCountStat(params){
+    return request({
+        url:`/slp/slp/approval/report/getWorkOrderCountStat`,
+        method:'get',
+        params
+    })
+}

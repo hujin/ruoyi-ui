@@ -4,19 +4,19 @@
             <div class="row">
                 <div class="row-item">
                     <div class="label">今日工单数</div>
-                    <div class="val">18件</div>
+                    <div class="val">{{info.todayCreateNum || 0}}件</div>
                 </div>
                 <div class="row-item">
                     <div class="label">总计工单数</div>
-                    <div class="val">18700件</div>
+                    <div class="val">{{info.totalNum || 0}}件</div>
                 </div>
                 <div class="row-item">
                     <div class="label">完成率</div>
-                    <div class="val">99%</div>
+                    <div class="val">{{info.completePct || 0}}%</div>
                 </div>
                 <div class="row-item">
                     <div class="label">人均派单数</div>
-                    <div class="val">120件/人</div>
+                    <div class="val">{{info.workOrderNumPerPeople || 0}}件/人</div>
                 </div>
             </div>
             <div class="chart-wrap">
@@ -50,13 +50,29 @@
 </template>
 <script>
 import * as echarts from 'echarts'
+import { getWorkOrderStatOverview,getWorkOrderCountStat } from "@/api/lampPost";
 
 export default {
     data(){
         return {
             chart1:null,
+            xAxis1:[],
+            yAxis1:[],
             chart2:null,
-            chart3:null
+            yAxis2:[],
+            chart3:null,
+            xAxis3:[],
+            yAxis3:[],
+            queryForm:{
+                time:[],
+                statType:'本月'
+            },
+            info:{
+                todayCreateNum:'',
+                totalNum:'',
+                completePct:'',
+                workOrderNumPerPeople:''
+            }
         }
     },
     methods:{
@@ -74,7 +90,7 @@ export default {
                     itemWidth:14
                 },
                 xAxis:{
-                    data:['07/01','07/02','07/03','07/04','07/05','07/06','07/07','07/08','07/09','07/10','07/11','07/12','07/13']
+                    data:this.xAxis1
                 },
                 yAxis: {
                     type: 'value'
@@ -85,7 +101,7 @@ export default {
                 series: [
                    {
                     type:'bar',
-                    data:[220, 182, 191, 234, 290, 330, 310, 123, 442, 321, 90, 149, 210 ],
+                    data:this.yAxis1,
                     // showBackground: true,
                     itemStyle: {
                         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -122,13 +138,7 @@ export default {
                         itemStyle: {
                             borderRadius: 0
                         },
-                        data: [
-                            { value: 40, name: 'A单位' },
-                            { value: 38, name: 'B单位' },
-                            { value: 32, name: 'C单位' },
-                            { value: 30, name: 'D单位' },
-                            { value: 28, name: 'E单位' },
-                        ]
+                        data: this.yAxis2
                     }
                 ]
             };
@@ -142,26 +152,26 @@ export default {
 
             let option = {
                 xAxis: {
-                    max: '100',
                     axisLabel:{
-                        formatter:'{value}%'
+                        formatter:'{value}'
                     } 
                 },
                 yAxis: {
                     type: 'category',
-                    data: ['A单位', 'B单位', 'C单位', 'D单位', 'E单位', 'F单位'],
+                    data: this.xAxis3,
                 },
                 grid:{
                     bottom:35,
+                    left:70
                 },
                 series: [{
                     type: 'bar',
-                    data: [50,20,30,40,50,21],
+                    data: this.yAxis3,
                     label: {
                         show: true,
                         position: 'right',
                         valueAnimation: true,
-                        formatter:'{@score}%'
+                        formatter:'{@score}'
                     },
                     itemStyle: {
                         color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
@@ -178,11 +188,92 @@ export default {
             this.chart3.setOption(option)
 
         },
+        getWorkOrderCountStat(){
+             let params = {
+                startTime:'',
+                endTime:'',
+                statType:''
+            }
+            if (this.queryForm.statType == '本日') {
+                params.statType = 'DAY'
+            }
+
+            if (this.queryForm.statType == '本月') {
+                params.statType = 'MONTH'
+            }
+
+            if (this.queryForm.statType == '本年') {
+                params.statType = 'YEAR'
+            }
+            getWorkOrderCountStat(params).then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        let xAxis1 = []
+                        let yAxis1 = []
+
+                        res.data.forEach(item => {
+                            xAxis1.push(item.key)
+                            yAxis1.push(item.value)
+                        })
+
+                        this.$set(this, 'xAxis1', xAxis1)
+                        this.$set(this, 'yAxis1', yAxis1)
+
+                        this.$nextTick(() => {
+                            this.initChart1()
+                        })
+                    }
+                }
+            })   
+        },
+        getWorkOrderStatOverview(){
+            getWorkOrderStatOverview().then(res => {
+                if (res.code == 200) {
+                    this.info.todayCreateNum = res.data.todayCreateNum
+                    this.info.totalNum = res.data.totalNum
+                    this.info.completePct = res.data.completePct
+                    this.info.workOrderNumPerPeople = res.data.workOrderNumPerPeople
+
+                    if (res.data.deviceTypeWorkOrderList) {
+                        let yAxis2 = []
+
+                        res.data.deviceTypeWorkOrderList.forEach(item => {
+                            yAxis2.push({
+                                name:item.key,
+                                value:item.value
+                            })
+                        })
+
+                        this.$set(this, 'yAxis2', yAxis2)
+
+                        this.$nextTick(() => {
+                            this.initChart2()
+                        })
+                    }
+
+                    if (res.data.deptWorkOrderList) {
+                        let xAxis3 = []
+                        let yAxis3 = []
+
+                        res.data.deptWorkOrderList.forEach(item => {
+                            xAxis3.push(item.key)
+                            yAxis3.push(item.value)
+                        })
+
+                        this.$set(this, 'xAxis3', xAxis3)
+                        this.$set(this, 'yAxis3', yAxis3)
+
+                        this.$nextTick(() => {
+                            this.initChart3()
+                        })
+                    }
+                }
+            })
+        }
     },
     mounted(){
-        this.initChart1()
-        this.initChart2()
-        this.initChart3()
+        this.getWorkOrderCountStat()
+        this.getWorkOrderStatOverview();
     }
 }
 </script>

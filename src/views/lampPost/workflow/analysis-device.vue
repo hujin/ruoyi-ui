@@ -3,21 +3,24 @@
         <div class="row">
             <div class="row-item">
                 <div class="label">设备数量</div>
-                <div class="val">112000个</div>
+                <div class="val">{{info.totalDeviceNum || 0}}个</div>
             </div>
             <div class="row-item">
                 <div class="label">总使用时长</div>
-                <div class="val">18500小时</div>
+                <div class="val">{{info.totalUseTime || 0}}小时</div>
             </div>
             <div class="row-item">
                 <div class="label">总使用次数</div>
-                <div class="val">12000次</div>
+                <div class="val">{{info.useTimes || 0}}次</div>
             </div>
         </div>
         <div class="c-content">
             <div class="left">
                 <div class="chart-wrap">
                     <div class="chart-title">各单位对设备使用占比</div>
+                    <div class="type-list">
+                        <div class="type-item" @click="handleTypeItemClick(index)" :class="{active: typeActive == index}" v-for="(item, index) in typeList" :key="index">{{item.text}}</div>
+                    </div>
                     <div class="chart-container">
                         <div class="chart" id="chart1" ref="chart1"></div>
                     </div> 
@@ -36,22 +39,46 @@
     </div>
 </template>
 <script>
+import { getDeviceUseStatOverview } from "@/api/lampPost";
+
 import * as echarts from 'echarts'
 
 export default {
+    dicts: ['sys_road', 'sys_audit_status', 'sys_device_type'],
     data(){
         return {
+            info:{
+                totalDeviceNum:'',
+                totalUseTime:'',
+                useTimes:''
+            },
             chart1:null,
-            chart2:null
+            typeActive:0,
+            typeList:[],
+            xAxis1:[],
+            yAxis1:[],
+            chart2:null,
+            xAxis2:[],
+            yAxis2:[],
         }
     },
     methods:{
+        handleTypeItemClick(index){
+            this.typeActive = index;
+
+            this.initChart1()
+        },
+        typeFormat(type){
+            return this.selectDictLabel(this.dict.type.sys_device_type, type);
+
+        },
         initChart1(){
             var el = this.$refs['chart1'];
             this.chart1 = echarts.init(el);
 
             let option = {
                 colors:['#F7C32D','#F1866D', '#61DEDD', '#6ADCAF', '#6395F9'],
+                
                 legend: {
                     top: 'bottom',
                     itemWidth:14,
@@ -67,13 +94,7 @@ export default {
                         itemStyle: {
                             borderRadius: 0
                         },
-                        data: [
-                            { value: 40, name: 'A单位' },
-                            { value: 38, name: 'B单位' },
-                            { value: 32, name: 'C单位' },
-                            { value: 30, name: 'D单位' },
-                            { value: 28, name: 'E单位' },
-                        ]
+                        data: this.typeList[this.typeActive].yAxis
                     }
                 ]
             };
@@ -86,11 +107,14 @@ export default {
             this.chart2 = echarts.init(el);
 
             let option = {
+                    tooltip: {
+                        trigger: 'axis'
+                    },
                     color:['#F7C32D','#6ADCAF','#6395F9','#FF9E88'],
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
-                        data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月']
+                        data: this.xAxis2
                     },
                     yAxis: {
                         type: 'value'
@@ -101,37 +125,78 @@ export default {
                         left:40,
                         top:40
                     },
-                    series: [
-                        {
-                            data: [820, 902, 911, 954, 1210, 1310, 900],
-                            type: 'line',
-                            
-                        },
-                        {
-                            data: [880, 612, 721, 364, 820, 920, 910],
-                            type: 'line',
-                            
-                        },
-                        {
-                            data: [510, 722, 831, 1074, 1130, 1530, 920],
-                            type: 'line',
-                            
-                        },
-                        {
-                            data: [826, 932, 941, 984, 1240, 1330, 930],
-                            type: 'line',
-                            
-                        }
-                    ]
+                    series: this.yAxis2
             };
 
             this.chart2.setOption(option)
 
         },
+        getDeviceUseStatOverview(){
+            getDeviceUseStatOverview().then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        this.info.totalDeviceNum = res.data.totalDeviceNum
+                        this.info.totalUseTime = res.data.totalUseTime
+                        this.info.useTimes = res.data.useTimes
+
+                        if (res.data.deptUseStat) {
+                            let typeList = []
+                            let deptUseStat = res.data.deptUseStat
+                            for (let key in deptUseStat) {
+                                deptUseStat[key].forEach(item => {
+                                    item['value'] = item.times
+                                })
+
+                                typeList.push({
+                                    value:key,
+                                    text: this.typeFormat(key),
+                                    yAxis: deptUseStat[key]
+                                })
+                            }
+                            this.$set(this, 'typeList', typeList)
+                            this.typeActive = 0
+                            this.$nextTick(() => {
+                                this.initChart1()
+                            })
+                            console.log(typeList)
+                        }
+
+                        if (res.data.deviceUseStat) {
+                            let xAxis2 = [];
+                            let yAxis2 = [];
+                            let typeKindList = []
+                            let deviceUseStat = res.data.deviceUseStat
+
+                            for (let key in deviceUseStat) {
+                                typeKindList.push(key)
+                                xAxis2 = []
+                                let data = []
+                                deviceUseStat[key].forEach(item => {
+                                    xAxis2.push(item.timeStr)
+                                    data.push(item.value)
+                                })
+                                yAxis2.push({
+                                    data:data,
+                                    type:'line',
+                                    name: key
+                                })
+                            }
+
+                            this.$set(this, 'xAxis2', xAxis2)
+                            this.$set(this, 'yAxis2', yAxis2)
+
+                            this.$nextTick(() => {
+                                this.initChart2()
+
+                            })
+                        }
+                    }
+                }
+            })
+        }
     },
      mounted(){
-        this.initChart1()
-        this.initChart2()
+        this.getDeviceUseStatOverview();
     }
 }
 </script>
@@ -139,6 +204,33 @@ export default {
 .conserve-analysis-time{
     display: flex;
     flex-direction: column;
+
+    .type-list{
+        width: 100%;
+        height: 56px;
+        background: #F8F9FB;
+        border-radius: 28px;
+        margin-top: 32px;
+        display: flex;
+
+        .type-item{
+            height: 56px;
+            box-sizing: border-box;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 400;
+            color: #A2A9BC;
+            border-radius: 28px;
+            cursor: pointer;
+
+            &.active{
+                background: #4E86FF;
+                color: #fff;
+            }
+        }
+    }
     
     .chart{
         width: 100%;
