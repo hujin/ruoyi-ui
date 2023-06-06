@@ -14,11 +14,12 @@
       </div>
     </div>
     <div class="right">
-        <div class="video-wrap">
+        <div class="video-wrap" :key="renderKey">
+          {{renderKey}}
           <template v-if="videoType == 1">
-            <el-carousel style="width:100%;height:100%" height="100%" class="carousel">
+            <el-carousel :autoplay="false" style="width:100%;height:100%" height="100%" class="carousel">
               <template v-if="videoUrl.length > 0">
-                <el-carousel-item v-for="(item, index) in videoUrl" :key="index" class="carousel-item"  style="width:100%;height:100%">
+                <el-carousel-item v-for="(item, index) in videoUrl" :key="item.id" class="carousel-item"  style="width:100%;height:100%">
                   <div class="video-list">
                     <div class="video-item-1">
                       <video class="video-js" :id="'video-'+ (index)"  controls autoplay style="width:100%;height:100%"  v-if="videoUrl[index]"></video>
@@ -41,21 +42,21 @@
            
           </template>
           <template v-if="videoType == 2">
-            <el-carousel style="width:100%;height:100%" height="100%">
+            <el-carousel :autoplay="false" style="width:100%;height:100%" height="100%">
               <template v-if="videoUrl.length > 0">
                 <el-carousel-item v-for="index in Math.ceil(videoUrl.length / 4)" :key="index" style="width:100%;height:100%">
                   <div class="video-list">
-                    <div class="video-item-4">
-                      <video class="video-js" :id="'video-'+ ((index - 1) * 4 + 0) "  controls autoplay style="width:100%;height:100%"  v-if="videoUrl[(index - 1)*4 + 0]"></video>
+                    <div class="video-item-4" :key="1">
+                      <video class="video-js" :id="'video-'+ ((index - 1) * 4 + 0) " v-if="!!videoUrl[(index - 1)*4 + 0]"  controls autoplay style="width:100%;height:100%"  ></video>
                     </div>
-                    <div class="video-item-4">
-                      <video class="video-js" :id="'video-'+ ((index - 1) * 4 + 1) "  controls autoplay style="width:100%;height:100%"  v-if="videoUrl[(index - 1)*4 + 1]"></video>
+                    <div class="video-item-4" :key="2">
+                      <video class="video-js" :id="'video-'+ ((index - 1) * 4 + 1) " v-if="!!videoUrl[(index - 1)*4 + 1]"  controls autoplay style="width:100%;height:100%"  ></video>
                     </div>
-                    <div class="video-item-4">
-                      <video class="video-js" :id="'video-'+ ((index - 1) * 4 + 2) "  controls autoplay style="width:100%;height:100%"  v-if="videoUrl[(index - 1)*4 + 2]"></video>
+                    <div class="video-item-4" :key="3">
+                      <video class="video-js" :id="'video-'+ ((index - 1) * 4 + 2) " v-if="!!videoUrl[(index - 1)*4 + 2]"  controls autoplay style="width:100%;height:100%" ></video>
                     </div>
-                    <div class="video-item-4">
-                      <video class="video-js" :id="'video-'+ ((index - 1) * 4 + 3) "  controls autoplay style="width:100%;height:100%"  v-if="videoUrl[(index - 1)*4 + 3]"></video>
+                    <div class="video-item-4" :key="4" >
+                      <video class="video-js" :id="'video-'+ ((index - 1) * 4 + 3) " v-if="!!videoUrl[(index - 1)*4 + 3]"  controls autoplay style="width:100%;height:100%" ></video>
                     </div>
                   </div>
                   
@@ -82,7 +83,7 @@
 
           </template>
           <template v-if="videoType == 3">
-            <el-carousel style="width:100%;height:100%" height="100%">
+            <el-carousel :autoplay="false" style="width:100%;height:100%" height="100%">
               <template v-if="videoUrl.length > 0">
                 <el-carousel-item v-for="index in Math.ceil(videoUrl.length / 9)" :key="index" style="width:100%;height:100%">
                   <div class="video-list">
@@ -146,7 +147,7 @@
 
           </template>
           <template v-if="videoType == 4">
-            <el-carousel style="width:100%;height:100%" height="100%">
+            <el-carousel :autoplay="false" style="width:100%;height:100%" height="100%">
               <template v-if="videoUrl.length > 0">
                 <el-carousel-item v-for="index in Math.ceil(videoUrl.length / 16)" :key="index" style="width:100%;height:100%">
                   <div class="video-list">
@@ -266,13 +267,17 @@ export default {
       }],
       type:1,
       id:'',
-      videoUrl:[]
+      videoUrl:[],
+      videoObj:{},
+      renderKey:0
     };
   },
   methods:{
     
     handleVideoTypeChange(val){
       this.videoType = val;
+      this.batchVideoDispose()
+      this.batchVideoPlay()
     },
     handleTypeChange(val){
       this.type = val;
@@ -281,10 +286,12 @@ export default {
         if (!data.id) {
           return;
         }
-        console.log(data, isCheck)
         if (this.type == 1 ) {
           if (isCheck) {
             this.getRealTimeUrl(data.id)
+          }else{
+            this.batchVideoDispose(data.id)
+            this.batchVideoPlay()
           }
         } else {
             if (isCheck) {
@@ -345,15 +352,17 @@ export default {
     },
     
     getRealTimeUrl(id){
+      if(this.videoObj[id]) return
       getRealTimeUrl({id}).then(res => {
         if (res.code == 200) {
           if (res.data) {
-            this.videoUrl.push(res.data)
-
+            this.videoUrl.push({
+              id,
+              src:res.data
+            })
+            this.$forceUpdate()
             this.$nextTick(() => {
-              let player =  videojs(`video-${this.videoUrl.length -1}`, {
-
-              })
+              let player =  videojs(`video-${this.videoUrl.length -1}`, {})
 
               player.src([{
                 type:'application/x-mpegURL',
@@ -361,6 +370,11 @@ export default {
               }]);
 
               player.play()
+
+              this.videoObj[id] = {
+                ...res.data,
+                example: player
+              }
             })
           }
         }
@@ -370,6 +384,36 @@ export default {
       getPlayBackVideo({id}).then(res => {
 
       })
+    },
+    batchVideoDispose(id){
+      for(let i in this.videoObj){
+        this.videoObj[i]?.example.dispose()
+      }
+      if(id){
+        this.videoUrl = this.videoUrl.filter(item => item.id != id)
+        this.videoObj[id] = null
+      }
+      this.renderKey = this.renderKey + 1
+    },
+    batchVideoPlay(){
+      this.$nextTick(()=>{
+        this.videoUrl.forEach((item,index) => {
+          let player =  videojs(`video-${index}`, {})
+
+          player.src([{
+            type:'application/x-mpegURL',
+            src:item.src
+          }]);
+
+          player.play()
+
+          this.videoObj[item.id] = {
+            ...item,
+            example: player
+          }
+        })
+      })
+      
     }
   },
   created(){
@@ -379,6 +423,9 @@ export default {
       this.getMonitorList(this.id)
     }
     this.getRoadRelation();
+  },
+  beforeDestroy(){
+    this.batchVideoDispose()
   }
 };
 </script>

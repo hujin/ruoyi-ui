@@ -3,6 +3,21 @@
         <div class="map-wrap">
             <div id="map"></div>
         </div>
+        <el-tooltip placement="bottom">
+            <div slot="content" class="mapMore-hover">
+                <div class="mapMore_li" @click="handleDistance">
+                    <img style="width:20px; margin-right:8px" src="@/assets/images/i-distance.png" alt="">
+                    测距
+                </div>
+                <div class="mapMore_li">
+                    <img style="width:20px;  margin-right:8px" src="@/assets/images/i-rect.png" alt="">
+                    框选
+                </div>
+            </div>
+            <div class="mapMore">
+                <i class="el-icon-more"></i>
+            </div>
+        </el-tooltip>
         <div class="info-wrap">
             <div class="box-h100">
                 <div class="icon">
@@ -313,7 +328,9 @@ export default {
                 windSpeedStr: ""
             },
             markerList:[],
-            current:''
+            current:'',
+
+            distanceStatus:false
         }
     },
     methods:{
@@ -380,7 +397,7 @@ export default {
             AMapLoader.load({
                 "key": "df32d1c57071a49dc07d45dbaad7cdbd", 
                 "version": "1.4.15",   // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-                "plugins": ['AMap.Icon','AMap.Marker'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+                "plugins": ['AMap.Icon','AMap.Marker', 'AMap.RangingTool'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
             }).then((AMap)=>{
                 // 初始化地图
                 this.AMap = AMap;
@@ -392,6 +409,8 @@ export default {
                 });
 
                 this.getInfo();
+
+                this.distance = new this.AMap.RangingTool(this.map)
 
             }).catch(e => {
                 console.log(e);
@@ -430,6 +449,15 @@ export default {
                     this.$set(this, 'detail', res.data)
                 }
             })
+        },
+        handleDistance(){
+            if(this.distanceStatus){
+                this.distance.turnOff()
+                this.distanceStatus = false
+            }else{
+                this.distance.turnOn()
+                this.distanceStatus = true
+            }
         }
     },
     mounted(){
@@ -942,5 +970,32 @@ export default {
             }
         }
     }
+}
+.mapMore{
+    width: 52px;
+    height: 45px;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 19px;
+    left: 346px;
+    z-index: 100;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+   
+}
+ .mapMore-hover{
+    width: 234px;
+    color: #fff;
+    font-size: 14px;
+    line-height: 28px;
+    padding: 0 10px;
+}
+.mapMore_li{
+    cursor: pointer;
+    display: flex;
+    align-items: center;
 }
 </style>

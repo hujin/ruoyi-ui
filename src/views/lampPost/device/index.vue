@@ -35,7 +35,49 @@
             <el-form-item>
                 <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
                 <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+                <el-button type="primary" :icon="seniorVisible ? 'el-icon-arrow-down' : 'el-icon-arrow-up'" size="mini" @click="handleShowSenior">高级筛选</el-button>
             </el-form-item>
+            <div style="margin-bottom:20px" class="searchSenior" v-if="seniorVisible">
+                <div class="searchSenior_title">
+                    高级筛选
+                </div>
+                <div>
+                    <el-form-item label="设备型号" prop="version">
+                        <el-select v-model="queryParams.version" placeholder="请选择设备型号">
+                            <el-option
+                                v-for="dict in dict.type.sys_device_type"
+                                :key="dict.value"
+                                :label="dict.label"
+                                :value="dict.value"
+                            />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="挂载设备数量" prop="deviceNum">
+                        <el-select v-model="queryParams.deviceNum" placeholder="请选择设备数量">
+                            <el-option
+                                v-for="dict in dict.type.sys_device_type"
+                                :key="dict.value"
+                                :label="dict.label"
+                                :value="dict.value"
+                            />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="挂载率">
+                        <el-input style="width:100px" v-model="queryParams.percentMin"></el-input>
+                        <span style="margin:0px 10px">-</span>
+                        <el-input style="width:100px" v-model="queryParams.percentMax"></el-input>
+                    </el-form-item>
+                    <el-form-item label="安装时间" prop="version">
+                        <el-date-picker 
+                            v-model="queryParams.time" 
+                            type="daterange"
+                            placeholder="请选择安装时间"
+                            style="width:250px"
+                            value-format="yyyy-MM-dd" >
+                        </el-date-picker>
+                    </el-form-item>
+                </div>
+            </div>
         </el-form>
         <el-row :gutter="10" class="mb8">
             <el-col :span="1.5">
@@ -743,7 +785,12 @@ export default {
                 pageSize: 10,
                 road: undefined,
                 status: undefined,
-                type:''
+                type:'',
+                version:'',
+                deviceNum:0,
+                percentMin:'',
+                percentMax:'',
+                time:[],
             },
             ids:[],
             list:[],
@@ -834,6 +881,8 @@ export default {
             itemInstallDepartmentNameList:[],
             itemMaintainDepartmentNameList:[],
             itemPropertyRightDepartmentNameList:[],
+
+            seniorVisible:false
         }
     },
     watch:{
@@ -854,6 +903,9 @@ export default {
         },
     },
     methods:{
+        handleShowSenior(){
+            this.seniorVisible = !this.seniorVisible
+        },
         handleChangeSubActive(index){
             this.subActive = index
             const start = this.form.slpOtherDeviceInfoList[index]
@@ -1257,5 +1309,19 @@ export default {
             }
         }
     }
+}
+
+.searchSenior{
+    background: #F8F8F8;
+    padding: 18px;
+    .searchSenior_title{
+        color: #333333;
+        font-size: 18px;
+        margin-bottom: 18px;
+        font-weight: bold;
+    }
+}
+.el-form--inline .el-form-item{
+        margin-right: 26px;
 }
 </style>

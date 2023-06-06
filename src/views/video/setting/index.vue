@@ -54,6 +54,7 @@ export default {
             })
         }
     },
+    inject:['getDeptNameById'],
     created(){
         this.getOfflineTime()
     }

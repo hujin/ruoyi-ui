@@ -1,4 +1,6 @@
 import Cookies from 'js-cookie'
+import { listDept } from "@/api/system/dept";
+import { listUser } from "@/api/system/user";
 
 const state = {
   sidebar: {
@@ -8,7 +10,9 @@ const state = {
   },
   device: 'desktop',
   size: Cookies.get('size') || 'medium',
-  system:''
+  system:'',
+  deptList:[],
+  userList:[],
 }
 
 const mutations = {
@@ -41,7 +45,14 @@ const mutations = {
   },
   SET_SYSTEM: (state, name) => {
     state.system = name
-  }
+  },
+  SET_DEPTLIST:(state, dept) => {
+    state.deptList = dept
+  },
+  SET_USERLIST:(state, dept) => {
+    state.userList = dept
+  },
+
 }
 
 const actions = {
@@ -62,6 +73,26 @@ const actions = {
   },
   setSystem({commit}, name) {
     commit('SET_SYSTEM', name)
+  },
+  getDepartment({ commit }){
+    return new Promise((resolve, reject) => {
+      listDept().then((res) => {
+        commit('SET_DEPTLIST', res.data)
+        resolve()
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getUserList({ commit }){
+    return new Promise((resolve, reject) => {
+      listUser().then((res) => {
+        commit('SET_USERLIST', res.data)
+        resolve()
+      }).catch(error => {
+        reject(error)
+      })
+    })
   }
 }
 
