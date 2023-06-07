@@ -4,15 +4,35 @@
             <div class="row">
                 <div class="row-item">
                     <div class="label">巡查人员统计</div>
-                    <div class="val">18个</div>
+                    <div class="val">{{info.totalUser || 0}}个</div>
                 </div>
                 <div class="row-item">
                     <div class="label">月新增</div>
-                    <div class="val">18个</div>
+                    <div class="val">{{info.currentMonthIncrUser || 0}}个</div>
                 </div>
             </div>
             <div class="chart-wrap">
                 <div class="chart-title">新增人员趋势图</div>
+                <div class="search" style="margin-top:20px">
+                         <el-form :model="queryForm" size="small" :inline="true">
+                            <el-form-item label="时间" prop="time">
+                                <el-date-picker v-model="queryForm.time" 
+                                    type="daterange"
+                                    range-separator="至"
+                                    start-placeholder="开始日期"
+                                    end-placeholder="结束日期"
+                                    style="width:100%"
+                                    value-format="yyyy-MM-dd hh:mm:ss"></el-date-picker>
+                            </el-form-item>
+                            <el-form-item prop="statType">
+                                <el-radio-group v-model="queryForm.statType" >
+                                    <el-radio-button label="本日"></el-radio-button>
+                                    <el-radio-button label="本月"></el-radio-button>
+                                    <el-radio-button label="本年"></el-radio-button>
+                                </el-radio-group>
+                            </el-form-item>
+                        </el-form>
+                </div>
                 <div class="chart-container">
                     <div class="chart" id="chart1" ref="chart1"></div>
                 </div> 
@@ -32,11 +52,25 @@
 <script>
 import * as echarts from 'echarts'
 
+import {getDeptUserStatOverviewVo, 
+        getUserCreateStat } from "@/api/lampPost";
+
 export default {
     data(){
         return {
             chart1:null,
-            chart2:null
+            xAxis1:[],
+            yAxis1:[],
+            chart2:null,
+            yAxis2:[],
+            queryForm:{
+                time:[],
+                statType:'本月'
+            },
+            info:{
+                currentMonthIncrUser:0,
+                totalUser:0
+            }
         }
     },
     methods:{
@@ -82,6 +116,9 @@ export default {
             this.chart2 = echarts.init(el);
 
             let option = {
+                tooltip: {
+                    show:true
+                },
                 colors:['#F7C32D','#F1866D', '#61DEDD', '#6ADCAF', '#6395F9'],
                 legend: {
                     top: 'bottom',
@@ -90,7 +127,7 @@ export default {
                 
                 series: [
                     {
-                        name: 'Nightingale Chart',
+                        name: '来源单位占比',
                         type: 'pie',
                         radius: [50, 120],
                         center: ['50%', '50%'],
@@ -98,13 +135,7 @@ export default {
                         itemStyle: {
                             borderRadius: 0
                         },
-                        data: [
-                            { value: 40, name: '气象站' },
-                            { value: 38, name: '集中控制器' },
-                            { value: 32, name: '单灯控制器' },
-                            { value: 30, name: '网关' },
-                            { value: 28, name: '摄像头' },
-                        ]
+                        data: this.yAxis2
                     }
                 ]
             };
@@ -112,8 +143,65 @@ export default {
             this.chart2.setOption(option)
 
         },
+        getDeptUserStatOverviewVo(){
+            getDeptUserStatOverviewVo().then(res => {
+                if (res.code == 200) {
+                    this.info.currentMonthIncrUser = res.data.currentMonthIncrUser
+                    this.info.totalUser = res.data.totalUser
+
+                    if (res.data.deptUserStatList) {
+                        let deptUserStatList = res.data.deptUserStatList
+                        let yAxis2 = [];
+                        
+                        deptUserStatList.forEach(item => {
+                            yAxis2.push({
+                                value:item.percent,
+                                name:item.name
+                            })
+                        })
+                        
+                        this.$set(this, 'yAxis2', yAxis2)
+                        this.$nextTick(() => {
+                            this.initChart2()
+                        })
+                    }   
+                }
+            })
+        },
+        getUserCreateStat(){
+            let params = {
+                startTime:'',
+                endTime:'',
+                statType:''
+            }
+
+            if (this.queryForm.time.length > 0) {
+                params.startTime = new Date(this.queryForm.time[0]).getTime()
+                params.endTime = new Date(this.queryForm.time[1]).getTime()
+            }
+
+            if (this.queryForm.statType == '本日') {
+                params.statType = 'DAY'
+            }
+
+            if (this.queryForm.statType == '本月') {
+                params.statType = 'MONTH'
+            }
+
+            if (this.queryForm.statType == '本年') {
+                params.statType = 'YEAR'
+            }
+
+            getUserCreateStat(params).then(res => {
+                if (res.code == 200) {
+
+                }
+            })
+        }
     },
     mounted(){
+        this.getDeptUserStatOverviewVo()
+        this.getUserCreateStat()
         this.initChart1()
         this.initChart2()
     }

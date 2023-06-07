@@ -406,6 +406,11 @@ export default {
                 status:1
             }).then(res => {
                 if (res.code == 200) {
+                    res.rows = res.rows || []
+                    res.rows.push({
+                        id:undefined,
+                        planName:'无'
+                    })
                     this.$set(this, 'planList', res.rows)
 
                     this.dialogState = true

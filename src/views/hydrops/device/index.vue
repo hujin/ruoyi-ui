@@ -173,6 +173,18 @@
                                 <el-input placeholder="请输入设备UID" v-model="form.uid" :disabled="state == 'view'"></el-input>
                             </el-form-item>
                         </el-col>
+                        <el-col :span="8">
+                            <el-form-item prop="uid" label="绑定视频设备">
+                                <el-select placeholder="请选择绑定视频设备" v-model="form.monitorId" :disabled="state == 'view'" style="width:100%">
+                                    <el-option
+                                        v-for="dict in videoList"
+                                        :key="dict.id"
+                                        :label="dict.name"
+                                        :value="dict.id"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
                         
                     </el-row>
                 </div>
@@ -389,6 +401,8 @@ import { getDeviceList,
          addDevice,
          deleteDevice } from "@/api/hydrops";
 
+import { getVideoDeviceList } from "@/api/video";
+
 import selectMap from '@/components/select-map/index.vue'
 import showMap from '@/components/show-map/index.vue'
 import Treeselect from "@riophae/vue-treeselect";
@@ -436,6 +450,7 @@ export default {
                 typeName:'',
                 roadSide:'',
                 lightPoleId:'',
+                monitorId:'',
                 uid:'',
                 longitude:'',
                 latitude:'',
@@ -470,6 +485,7 @@ export default {
             installDepartmentNameList:[],
             maintainDepartmentNameList:[],
             propertyRightDepartmentNameList:[],
+            videoList:[]
         }
     },
     watch:{
@@ -737,8 +753,19 @@ export default {
                 this.deptOptions = this.handleTree(response.data, "deptId");
             });
         },
+        getVideoDeviceList(){
+            getVideoDeviceList({
+                pageNum:1,
+                pageSize:99999
+            }).then(res => {
+                if (res.code === 200) {
+                    this.$set(this, 'videoList', res.rows)
+                }
+            })
+        }
     },
     created(){
+        this.getVideoDeviceList();
         this.initDept();
         this.getList();
     }

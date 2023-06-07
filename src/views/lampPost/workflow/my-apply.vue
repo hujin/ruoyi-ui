@@ -551,7 +551,13 @@ export default {
             this.getList()
         },
         resetQuery(){
-
+            this.queryParams.pageNum = 1
+            this.queryParams.pageSize = 20
+            this.queryParams.time = []
+            this.queryParams.applyQueryStartTime = ''
+            this.queryParams.applyQueryEndTime = ''
+            this.queryParams.statusCode = ''
+            this.getList()
         },
         handleMultDelete(){
             if (this.ids.length == 0) {

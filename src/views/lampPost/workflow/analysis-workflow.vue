@@ -202,6 +202,12 @@ export default {
                 endTime:'',
                 statType:''
             }
+            
+            if (this.queryForm.time.length > 0) {
+                params.startTime = new Date(this.queryForm.time[0]).getTime()
+                params.endTime = new Date(this.queryForm.time[1]).getTime()
+            }
+
             if (this.queryForm.statType == '本日') {
                 params.statType = 'DAY'
             }

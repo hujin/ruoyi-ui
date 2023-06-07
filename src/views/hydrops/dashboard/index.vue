@@ -191,6 +191,7 @@
                 </div>
             </template>
             <div class="detail-info">
+                
                 <el-row>
                     <el-col :span="24">
                         <div class="video-wrap">
@@ -431,6 +432,9 @@ export default {
             var el = this.$refs['chart3'];
             this.chart3 = echarts.init(el);
             let options = {
+                tooltip: {
+                    show:true
+                },
                 color:['#4E86FF','#FAAC13','#FF8300','#EB0E1D'],
                 tooltip: {
                     trigger: 'item'
@@ -443,7 +447,7 @@ export default {
                 },
                 series: [
                     {
-                        name: 'Access From',
+                        name: '报警总数',
                         type: 'pie',
                         center: [100,80],
                         radius: ['40%', '70%'],
@@ -489,6 +493,15 @@ export default {
                 if (item.latitude) {
                     this.addMarker(item)
                 }
+            })
+        },
+        addMarker(item){
+             new this.AMap.Marker({
+                position:[item.longitude, item.latitude],
+                map:this.map
+            }).on('click', (event) => {
+                this.getDeviceInfoById(item.id)
+                                            // console.log(event, 'marker click', item.id)
             })
         },
         zoomIn(){
@@ -545,13 +558,7 @@ export default {
                             if (this.AMap && list) {
                                 list.forEach(item => {
                                     if (item.latitude) {
-                                        new this.AMap.Marker({
-                                            position:[item.longitude, item.latitude],
-                                            map:this.map
-                                        }).on('click', (event) => {
-                                            this.getDeviceInfoById(item.id)
-                                            // console.log(event, 'marker click', item.id)
-                                        })
+                                       this.addMarker(item)
                                     }
                             
                                 });

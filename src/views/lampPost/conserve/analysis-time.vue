@@ -3,21 +3,41 @@
         <div class="row">
             <div class="row-item">
                 <div class="label">总巡查时间</div>
-                <div class="val">1121.4小时</div>
+                <div class="val">{{info.inspectionHour}}小时</div>
             </div>
             <div class="row-item">
                 <div class="label">总巡查次数</div>
-                <div class="val">1582次</div>
+                <div class="val">{{info.totalInspectionCount}}次</div>
             </div>
             <div class="row-item">
                 <div class="label">高频巡查时间段</div>
-                <div class="val">14:00</div>
+                <div class="val">{{new Date(info.frequencyTime).Format('hh:ss')}}</div>
             </div>
         </div>
         <div class="c-content">
             <div class="left">
                 <div class="chart-wrap">
                     <div class="chart-title">新增人员趋势图</div>
+                    <div class="search" style="margin-top:20px">
+                         <el-form :model="queryForm" size="small" :inline="true">
+                            <el-form-item label="时间" prop="time">
+                                <el-date-picker v-model="queryForm.time" 
+                                    type="daterange"
+                                    range-separator="至"
+                                    start-placeholder="开始日期"
+                                    end-placeholder="结束日期"
+                                    style="width:100%"
+                                    value-format="yyyy-MM-dd hh:mm:ss"></el-date-picker>
+                            </el-form-item>
+                            <el-form-item prop="statType">
+                                <el-radio-group v-model="queryForm.statType" >
+                                    <el-radio-button label="本日"></el-radio-button>
+                                    <el-radio-button label="本月"></el-radio-button>
+                                    <el-radio-button label="本年"></el-radio-button>
+                                </el-radio-group>
+                            </el-form-item>
+                        </el-form>
+                    </div>
                     <div class="chart-container">
                         <div class="chart" id="chart1" ref="chart1"></div>
                     </div> 
@@ -36,13 +56,27 @@
     </div>
 </template>
 <script>
+import { getReportTimeAndContent } from "@/api/lampPost";
+
 import * as echarts from 'echarts'
 
 export default {
     data(){
         return {
             chart1:null,
-            chart2:null
+            xAxis1:[],
+            yAxis1:[],
+            chart2:null,
+            yAxis2:[],
+            queryForm:{
+                time:[],
+                statType:'本月'
+            },
+            info:{
+                frequencyTime:'',
+                inspectionHour:0,
+                totalInspectionCount:0
+            }
         }
     },
     methods:{
@@ -60,7 +94,7 @@ export default {
                     itemWidth:14
                 },
                 xAxis:{
-                    data:['07/01','07/02','07/03','07/04','07/05','07/06','07/07','07/08','07/09','07/10','07/11','07/12','07/13']
+                    data:this.xAxis1
                 },
                 yAxis: {
                     type: 'value'
@@ -73,7 +107,7 @@ export default {
                 series: [
                    {
                     type:'bar',
-                    data:[220, 182, 191, 234, 290, 330, 310, 123, 442, 321, 90, 149, 210 ],
+                    data:this.yAxis1,
                     label: {
                         show: true,
                         position: 'top',
@@ -99,6 +133,9 @@ export default {
             this.chart2 = echarts.init(el);
 
             let option = {
+                tooltip: {
+                    show:true
+                },
                 colors:['#F7C32D','#F1866D', '#61DEDD', '#6ADCAF', '#6395F9'],
                 legend: {
                     top: 'bottom',
@@ -107,7 +144,7 @@ export default {
                 
                 series: [
                     {
-                        name: 'Nightingale Chart',
+                        name: '来源单位占比',
                         type: 'pie',
                         radius: [50, 120],
                         center: ['50%', '50%'],
@@ -115,13 +152,7 @@ export default {
                         itemStyle: {
                             borderRadius: 0
                         },
-                        data: [
-                            { value: 40, name: '气象站' },
-                            { value: 38, name: '集中控制器' },
-                            { value: 32, name: '单灯控制器' },
-                            { value: 30, name: '网关' },
-                            { value: 28, name: '摄像头' },
-                        ]
+                        data: this.yAxis2
                     }
                 ]
             };
@@ -129,10 +160,89 @@ export default {
             this.chart2.setOption(option)
 
         },
+        getReportTimeAndContent(){
+             let params = {
+                beginTime:'',
+                beginTime:'',
+                timeType:''
+            }
+            
+            if (this.queryForm.time.length > 0) {
+                params.startTime = new Date(this.queryForm.time[0]).getTime()
+                params.endTime = new Date(this.queryForm.time[1]).getTime()
+            }
+
+            if (this.queryForm.statType == '本日') {
+                params.timeType = '1'
+            }
+
+            if (this.queryForm.statType == '本月') {
+                params.timeType = '2'
+            }
+
+            if (this.queryForm.statType == '本年') {
+                params.timeType = '3'
+            }
+
+            getReportTimeAndContent(params).then(res => {
+                if (res.code == 200) {
+                    this.info.frequencyTime = res.data.frequencyTime
+                    this.info.inspectionHour = res.data.inspectionHour
+                    this.info.totalInspectionCount = res.data.totalInspectionCount
+
+                    if (res.data.inspectionContentList) {
+                        let inspectionContentList = res.data.inspectionContentList
+                        let yAxis2 = []
+                        inspectionContentList.forEach(item => {
+                            yAxis2.push({
+                                value:item.percent,
+                                name: item.typeName
+                            })
+                        })
+
+                        this.$set(this, 'yAxis2', yAxis2)
+                        this.$nextTick(() => {
+                            this.initChart2()
+                        })
+                    }
+
+                    if (res.data.inspectionCountList) {
+                        let inspectionCountList = res.data.inspectionCountList
+
+                        let xAxis1 = []
+                        let yAxis1 = []
+                        inspectionCountList.forEach(item => {
+                            if (params.timeType == '1') {
+                                xAxis1.push(new Date(item.inspectionTime).Format('MM/dd'))
+
+                            }
+                            if (params.timeType == '2') {
+                                console.log(new Date(item.inspectionTime), item)
+                                xAxis1.push(new Date(item.inspectionTime).Format('MM'))
+
+                            }
+
+                            if (params.timeType == '3') {
+                                xAxis1.push(new Date(item.inspectionTime).Format('yyyy'))
+
+                            }
+
+                            yAxis1.push(item.inspectionCount)
+                        })
+                        this.$set(this, 'xAxis1', xAxis1)
+                        this.$set(this, 'yAxis1', yAxis1)
+
+                        this.$nextTick(() => {
+                            this.initChart1()
+                        })
+
+                    }
+                }
+            })
+        }
     },
      mounted(){
-        this.initChart1()
-        this.initChart2()
+        this.getReportTimeAndContent()
     }
 }
 </script>

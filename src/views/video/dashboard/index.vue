@@ -271,6 +271,9 @@ export default {
                     resizeEnable: true
                 });
                 this.distance = new this.AMap.RangingTool(this.map)
+
+                this.getInfo();
+                
             }).catch(e => {
                 console.log(e);
             });
@@ -341,7 +344,6 @@ export default {
         }
     },
     mounted(){
-        this.getInfo();
         this.initMap();
     }
 }

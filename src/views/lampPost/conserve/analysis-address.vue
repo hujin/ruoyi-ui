@@ -7,7 +7,7 @@
             <div class="row">
                 <div class="row-item">
                     <div class="label">巡查地点数量</div>
-                    <div class="val">18个</div>
+                    <div class="val">{{inspectionAddressCount || 0}}个</div>
                 </div>
             </div>
             <div class="chart-wrap">
@@ -28,24 +28,35 @@ window._AMapSecurityConfig = {
     securityJsCode: 'a90b574d2e36a2deb900b322fb891b5f',
 }
 
+import { getMountingAnalysis } from "@/api/lampPost";
+
 export default {
+    dicts: ['sys_road'],
     data(){
         return {
             chart2:null,
+            yAxis2:[],
             map : null,
             mouseTool : null,
             overlays : [],
             auto : null,
             placeSearch : null, 
             AMap:null,
+            inspectionAddressCount:''
         }
     },
     methods:{
+        roadFormat(road) {
+            return this.selectDictLabel(this.dict.type.sys_road, road);
+        },
         initChart2(){
             var el = this.$refs['chart2'];
             this.chart2 = echarts.init(el);
 
             let option = {
+                tooltip: {
+                    show:true
+                },
                 colors:['#F7C32D','#F1866D', '#61DEDD', '#6ADCAF', '#6395F9'],
                 legend: {
                     top: 'bottom',
@@ -54,7 +65,7 @@ export default {
                 
                 series: [
                     {
-                        name: 'Nightingale Chart',
+                        name: '各地巡查次数',
                         type: 'pie',
                         radius: [50, 120],
                         center: ['50%', '50%'],
@@ -62,13 +73,7 @@ export default {
                         itemStyle: {
                             borderRadius: 0
                         },
-                        data: [
-                            { value: 40, name: '气象站' },
-                            { value: 38, name: '集中控制器' },
-                            { value: 32, name: '单灯控制器' },
-                            { value: 30, name: '网关' },
-                            { value: 28, name: '摄像头' },
-                        ]
+                        data: this.yAxis2
                     }
                 ]
             };
@@ -80,7 +85,7 @@ export default {
             AMapLoader.load({
                 "key": "df32d1c57071a49dc07d45dbaad7cdbd", 
                 "version": "1.4.15",   // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-                "plugins": ['AMap.Icon','AMap.Marker'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+                "plugins": ['AMap.Icon','AMap.Marker', 'AMap.Heatmap'],           // 需要使用的的插件列表，如比例尺'AMap.Scale'等
             }).then((AMap)=>{
                 // 初始化地图
                 this.AMap = AMap;
@@ -90,14 +95,50 @@ export default {
                     center : [120.252635, 30.236056], //中心点坐标  郑州
                     resizeEnable: true
                 });
+                console.log('fffff')
+                this.getMountingAnalysis()
             }).catch(e => {
                 console.log(e);
             });
         },
+        getMountingAnalysis(){
+            getMountingAnalysis().then(res => {
+                if (res.code == 200) {
+                    this.inspectionAddressCount = res.data.inspectionAddressCount
+
+                    if (res.data.heatMapList) {
+                        var heatmap = new this.AMap.Heatmap(this.map, {
+                            radius:25,
+                            opacity: [0, 0.8],
+                            
+                        })
+
+                        heatmap.setDataSet({
+                            data:res.data.heatMapList
+                        })
+                    }
+
+                    if (res.data.slpInspectionAddressCountVoList) {
+                        let yAxis2 = []
+                        let slpInspectionAddressCountVoList = res.data.slpInspectionAddressCountVoList
+                        slpInspectionAddressCountVoList.forEach(item => {
+                            yAxis2.push({
+                                name: this.roadFormat(item.road),
+                                value: item.inspectionCount
+                            })
+                        })
+
+                        this.$set(this, 'yAxis2', yAxis2)
+                        this.$nextTick(() => {
+                            this.initChart2()
+                        })
+                    }
+                }
+            })
+        }
     },
      mounted(){
         this.initMap()
-        this.initChart2()
     }
 }
 </script>

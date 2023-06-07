@@ -338,3 +338,33 @@ export function deleteContent(ids){
         method:'delete'
     })
 }
+
+export function getDeptUserStatOverviewVo(){
+    return request({
+        url:`/slp/slp/inspection/stat/getDeptUserStatOverviewVo`,
+        method:'get'
+    })
+}
+
+export function getUserCreateStat(params){
+    return request({
+        url:`/slp/slp/inspection/stat/getUserCreateStat`,
+        params,
+        method:'get'
+    })
+}
+
+export function getReportTimeAndContent(params){
+    return request({
+        url:`/slp/slp/inspection/report/getReportTimeAndContent`,
+        params,
+        method:'get'
+    })
+}
+
+export function getMountingAnalysis(){
+    return request({
+        url:`/slp/slp/inspection/report/getMountingAnalysis`,
+        method:'get'
+    })
+}
