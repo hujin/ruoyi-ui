@@ -101,42 +101,52 @@
                 </div>
             </el-input>
         </div>
-        <el-dialog :visible.sync="visible" width="800px">
+        <el-dialog :visible.sync="visible" width="800px"  custom-class="customDialog" destroy-on-close @close="handleCustomClose">
             <template slot="title">
-                <div class="custom-title">
-                    <span class="text">{{detail.name}}</span>
+                <div>
+                    {{detail.title}}
+                    <span class="runState-success">{{detail.statusStr}}</span>
                 </div>
             </template>
             <div class="detail-info">
-                <el-row>
-                    <el-col :span="24">
-                        <div class="video-wrap">
-                            <video src="" class="video"></video>
-                        </div>
-                    </el-col>
-                    <el-col :span="12">
-                        <div class="row">
-                            <div class="label">设备UID：</div>
-                        </div>
-                    </el-col>
-                     <el-col :span="12">
-                        <div class="row">
-                            <div class="label">设备坐标：</div>
-                        </div>
-                    </el-col>
-                     <el-col :span="12">
-                        <div class="row">
-                            <div class="label">设备型号：</div>
-                        </div>
-                    </el-col>
-                     <el-col :span="12">
-                        <div class="row">
-                            <div class="label">安装时间：</div>
-                        </div>
-                    </el-col>
-                </el-row>
+                <div class="dialogVideo">
+                    <video id="dialogVideo" class="video-js" controls autoplay style="width:100%;height:100%" ></video>
+                </div>
+                <div class="desc-info">
+                    <el-row style="margin-bottom:16px">
+                        <el-col :span="14">
+                            <div class="desc-info-col">
+                                <span>设备UID：</span>
+                                {{detail.uid}}
+                            </div>
+                        </el-col>
+                        <el-col :span="10">
+                            <div class="desc-info-col">
+                                <span>设备坐标：</span>
+                                {{detail.longitude}}，{{detail.latitude}}
+                            </div>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="14">
+                            <div class="desc-info-col">
+                                <span>设备型号：</span>
+                                {{detail.deviceCategory}}
+                            </div>
+                        </el-col>
+                        <el-col :span="10">
+                            <div class="desc-info-col">
+                                <span>安装时间：</span>
+                                {{detail.createTime}}
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
               
-                <div style="text-align:center">
+                <div class="btn-wrap">
+                    <div class="btn" style="margin-right:24px">
+                        安装回放
+                    </div>  
                     <el-button type="primary" @click="goDetail">查看详情</el-button>
                 </div>
             </div>
@@ -148,7 +158,7 @@ import * as echarts from 'echarts'
 
 import { getMonitorDetailInMap } from "@/api/environment";
 
-import { getOverviewInfo,getRealTimeUrl } from "@/api/video";
+import { getOverviewInfo,getRealTimeUrl, getDeviceDetail } from "@/api/video";
 
 
 import AMapLoader from '@amap/amap-jsapi-loader'
@@ -291,7 +301,7 @@ export default {
                                     map:this.map
                                 }).on('click', (event) => {
                                     console.log(event, 'marker click')
-                                    this.getMonitorDetailInMap(item.id)
+                                    this.getDeviceDetail(item.id)
                                 })
                             }
                             
@@ -325,13 +335,28 @@ export default {
                 }
             })
         },
-        getMonitorDetailInMap(id){
-            getMonitorDetailInMap(id).then(res => {
+        getDeviceDetail(id){
+            getDeviceDetail(id).then(res => {
                 if (res.code == 200) {
                     this.visible = true
                     this.$set(this, 'detail', res.data)
+                    this.$nextTick(()=>{
+                        this.player = videojs(`dialogVideo`, {})
+                        this.player.src([{
+                            type:'application/x-mpegURL',
+                            src: res.data.realVideoUrl
+                        }]);
+                        this.player.play()
+                    })
+                    // getRealTimeUrl(res.data).then(res => {
+                    //     console.log(res)
+                    // })
                 }
             })
+        },
+        handleCustomClose(){
+            this.player.dispose()
+            this.player = null
         },
         handleDistance(){
             if(this.distanceStatus){
@@ -345,6 +370,9 @@ export default {
     },
     mounted(){
         this.initMap();
+    },
+    beforeDestroy(){
+        this.player && this.player.dispose()
     }
 }
 </script>
@@ -679,5 +707,69 @@ export default {
     cursor: pointer;
     display: flex;
     align-items: center;
+}
+.customDialog{
+    .el-dialog__header{
+        padding: 14px 24px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.23);
+    }
+
+    .runState-success{
+        color: #05A75E;
+        position: relative;
+        padding-left: 15px;
+        margin-left: 20px;
+        &::before{
+            position: absolute;
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: #05A75E;
+            border-radius: 100%;
+            top: 50%;
+            margin-top: -5px;
+            left: 0;
+        }
+    }
+    .desc-info{
+        padding: 24px;
+    }
+    .desc-info-col{
+        font-size: 16px;
+        color: rgba(0, 0, 0, 0.90);
+        span{
+            color: rgba(0, 0, 0, 0.60);
+        }
+    }
+    .dialogVideo{
+        height: 375px;
+    }
+
+    .btn-wrap{
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+
+      .btn{
+        height: 40px;
+        line-height: 40px;
+        padding: 0 26px;
+        box-sizing: border-box;
+        border:1px solid #409EFE;
+        color: #409EFE;
+        font-size: 16px;
+        border-radius: 3px;
+        cursor: pointer;
+
+        &.active{
+          background-color: #409EFE;
+          color: #fff;
+        }
+      }
+
+      .btn + .btn {
+        margin-left: 24px;
+      }
+    }
 }
 </style>

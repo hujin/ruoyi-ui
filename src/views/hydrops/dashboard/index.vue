@@ -184,44 +184,81 @@
             </el-input>
         </div>
         
-        <el-dialog :visible.sync="visible" width="800px">
+        <el-dialog :visible.sync="visible" width="800px" custom-class="customDialog" destroy-on-close @close="handleCustomClose">
             <template slot="title">
-                <div class="custom-title">
-                    <span class="text">{{detail.name}}</span>
+                <div>
+                    XXX道路
+                    <span class="runState-success">正常运行</span>
                 </div>
             </template>
             <div class="detail-info">
-                
-                <el-row>
-                    <el-col :span="24">
-                        <div class="video-wrap">
-                            <video src="" class="video"></video>
+                <div class="desc-card">
+                    <div class="desc-card-left">
+                        <div class="desc-card-left-title">
+                            {{dialogDetail.realWater}}cm
                         </div>
-                    </el-col>
-                    <el-col :span="12">
-                        <div class="row">
-                            <div class="label">设备UID：</div>
+                        <div class="desc-card-left-desc">
+                            实时水位
                         </div>
-                    </el-col>
-                     <el-col :span="12">
-                        <div class="row">
-                            <div class="label">设备坐标：</div>
+                    </div>
+                    <div class="desc-card-right">
+                        <div style="margin-bottom:16px">
+                            <span>
+                                站点地址：
+                            </span>
+                            {{dialogDetail.address}}
                         </div>
-                    </el-col>
-                     <el-col :span="12">
-                        <div class="row">
-                            <div class="label">设备型号：</div>
-                        </div>
-                    </el-col>
-                     <el-col :span="12">
-                        <div class="row">
-                            <div class="label">安装时间：</div>
-                        </div>
-                    </el-col>
-                </el-row>
-              
-                <div style="text-align:center">
-                    <el-button type="primary" @click="goDetail">查看详情</el-button>
+                        <div>
+                            <span>
+                                站点坐标：
+                            </span>
+                            {{dialogDetail.longitude}}，{{dialogDetail.latitude}}
+                        </div>        
+                    </div>
+                </div>
+                <div class="desc-info">
+                    <el-row style="margin-bottom:16px">
+                        <el-col :span="14">
+                            <div class="desc-info-col">
+                                <span>今日最大水位：</span>
+                                {{dialogDetail.currentMaxWaterLevel}}cm
+                            </div>
+                        </el-col>
+                        <el-col :span="10">
+                            <div class="desc-info-col">
+                                <span>积水速度：</span>
+                                {{dialogDetail.waterLevelUpSpeed}}cm/h
+                            </div>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="14">
+                            <div class="desc-info-col">
+                                <span>排水速度：</span>
+                                {{dialogDetail.waterLevelDownSpeed}}cm
+                            </div>
+                        </el-col>
+                        <el-col :span="10">
+                            <div class="desc-info-col">
+                                <span>积水时长：</span>
+                                {{dialogDetail.warningContinueTime}}cm/h
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+                <div class="dialogVideo">
+                    <video id="dialogVideo" class="video-js" controls autoplay style="width:100%;height:100%" ></video>
+                </div>
+                <div class="btn-wrap" style="text-align:right">
+                    <div class="btn">
+                        数据分析
+                    </div>  
+                    <div class="btn">
+                        历史数据
+                    </div>  
+                    <div class="btn">
+                        报警处理
+                    </div>  
                 </div>
             </div>
         </el-dialog>
@@ -235,7 +272,8 @@ import { getPondingWarningWeekStat,
          getOverviewInfo,
          getSlpPondingReportedDataBase,
          getWarningProportionVo,
-         getDeviceInfoById } from "@/api/hydrops";
+         getDeviceInfoById,
+        } from "@/api/hydrops";
 
 import AMapLoader from '@amap/amap-jsapi-loader'
 window._AMapSecurityConfig = {
@@ -291,11 +329,12 @@ export default {
             chart3_xAxis:[],
             chart3_yAxis:[],
 
-            distanceStatus:false
+            distanceStatus:false,
+
+            dialogDetail:{
+
+            }
         }
-    },
-    beforeDestroy(){
-        console.log('test 11111222')
     },
     methods:{
         handleCurrentChange(val){
@@ -477,7 +516,6 @@ export default {
         search(){
             let keyword = this.keyword;
             let list = JSON.parse(JSON.stringify(this.markerList))
-            console.log(list)
             this.map.clearMap();
             let result;
             if (keyword) {
@@ -485,7 +523,6 @@ export default {
                     return item.name.indexOf(keyword) > -1
                 })
             } else {
-                console.log(list)
                 result = list
             }
            
@@ -519,9 +556,22 @@ export default {
         getDeviceInfoById(id){
             getDeviceInfoById(id).then(res => {
                 if (res.code == 200) {
+                    this.dialogDetail = res.data
                     this.visible = true
+                    this.$nextTick(()=>{
+                        this.player = videojs(`dialogVideo`, {})
+                        this.player.src([{
+                            type:'application/x-mpegURL',
+                            src: res.data.realVideoUrl
+                        }]);
+                        this.player.play()
+                    })
                 }
             })
+        }, 
+        handleCustomClose(){
+            this.player.dispose()
+            this.player = null
         },
         initMap() {
             AMapLoader.load({
@@ -665,7 +715,8 @@ export default {
                 this.distance.turnOn()
                 this.distanceStatus = true
             }
-        }
+        },
+
     },
     mounted(){
         this.initMap();
@@ -673,6 +724,9 @@ export default {
         this.getPondingWarningWeekStat();
         this.getWarningProportionVo();
         this.getSlpPondingReportedDataBase();
+    },
+    beforeDestroy(){
+       this.player && this.player.dispose()
     }
 }
 </script>
@@ -1153,5 +1207,97 @@ export default {
     cursor: pointer;
     display: flex;
     align-items: center;
+}
+.customDialog{
+    .el-dialog__header{
+        padding: 14px 24px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.23);
+    }
+
+    .runState-success{
+        color: #05A75E;
+        position: relative;
+        padding-left: 15px;
+        margin-left: 20px;
+        &::before{
+            position: absolute;
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: #05A75E;
+            border-radius: 100%;
+            top: 50%;
+            margin-top: -5px;
+            left: 0;
+        }
+    }
+    .desc-card{
+        height: 120px;
+        background: #F8F9FB;
+        border-radius: 4px;
+        display: flex;
+        .desc-card-left{
+            background: rgba(64, 158, 254, 0.10);
+            width: 206px;
+            text-align: center;
+        }
+        .desc-card-left-title{
+            color: rgba(0, 0, 0, 0.90);
+            font-size: 48px;
+            font-weight: bold;
+            margin-top: 18px;
+        }
+        .desc-card-left-desc{
+            color: rgba(0, 0, 0, 0.60);
+            font-size: 16px;
+        }
+        .desc-card-right{
+            font-size: 16px;
+            padding: 28px 24px;
+            color: rgba(0, 0, 0, 0.90);
+            span{
+                color: rgba(0, 0, 0, 0.60);
+            }
+        }
+    }
+    .desc-info{
+        padding: 24px;
+    }
+    .desc-info-col{
+        font-size: 16px;
+        color: rgba(0, 0, 0, 0.90);
+        span{
+            color: rgba(0, 0, 0, 0.60);
+        }
+    }
+    .dialogVideo{
+        height: 375px;
+    }
+    .btn-wrap{
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+
+      .btn{
+        height: 40px;
+        line-height: 40px;
+        padding: 0 32px;
+        box-sizing: border-box;
+        border:1px solid #409EFE;
+        color: #409EFE;
+        font-size: 16px;
+        border-radius: 3px;
+        cursor: pointer;
+
+        &.active{
+          background-color: #409EFE;
+          color: #fff;
+        }
+      }
+
+      .btn + .btn {
+        margin-left: 24px;
+      }
+    }
 }
 </style>
