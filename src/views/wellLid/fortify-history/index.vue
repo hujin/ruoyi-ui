@@ -34,7 +34,34 @@
             <el-form-item>
                 <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
                 <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+                <el-button type="primary" :icon="seniorVisible ? 'el-icon-arrow-down' : 'el-icon-arrow-up'" size="mini" @click="handleShowSenior">高级筛选</el-button>
             </el-form-item>
+            <div style="margin-bottom:20px" class="searchSenior" v-if="seniorVisible">
+                <div class="searchSenior_title">
+                    高级筛选
+                </div>
+                <div>
+                    <el-form-item label="操作单位" prop="unit">
+                        <el-select v-model="queryParams.unit" placeholder="请选择操作单位">
+                            <el-option
+                                v-for="dict in dict.type.sys_device_type"
+                                :key="dict.value"
+                                :label="dict.label"
+                                :value="dict.value"
+                            />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="时间" prop="time">
+                        <el-date-picker 
+                            v-model="queryParams.time" 
+                            type="daterange"
+                            placeholder="请选择时间"
+                            style="width:250px"
+                            value-format="yyyy-MM-dd" >
+                        </el-date-picker>
+                    </el-form-item>
+                </div>
+            </div>
         </el-form>
         <el-row :gutter="10" class="mb8">
             <el-col :span="1.5">
@@ -130,10 +157,14 @@ export default {
             total:0,
            
             defencesOffCount:0,
-            defencesOnCount:0
+            defencesOnCount:0,
+            seniorVisible:false
         }
     },
     methods:{
+        handleShowSenior(){
+            this.seniorVisible = !this.seniorVisible
+        },
         roadFormat(row) {
             return this.selectDictLabel(this.dict.type.sys_road, row.road);
         },
