@@ -105,7 +105,7 @@
             <template slot="title">
                 <div>
                     {{detail.title}}
-                    <span class="runState-success">{{detail.statusStr}}</span>
+                    <span :class="statusMap[detail.status] && statusMap[detail.status].type">{{detail.statusStr}}</span>
                 </div>
             </template>
             <div class="detail-info">
@@ -196,7 +196,22 @@ export default {
             },
             chart_data:[],
 
-            distanceStatus:false
+            distanceStatus:false,
+
+            statusMap:{
+                0:{
+                    name:'离线',
+                    type:'runState-info'
+                },
+                1:{
+                    name:'正常运行',
+                    type:'runState-success'
+                },
+                2:{
+                    name:'报警',
+                    type:'runState-error'
+                },
+            }
         }
     },
     methods:{
@@ -725,6 +740,40 @@ export default {
             width: 10px;
             height: 10px;
             background: #05A75E;
+            border-radius: 100%;
+            top: 50%;
+            margin-top: -5px;
+            left: 0;
+        }
+    }
+    .runState-info{
+        color: #ccc;
+        position: relative;
+        padding-left: 15px;
+        margin-left: 20px;
+        &::before{
+            position: absolute;
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: #ccc;
+            border-radius: 100%;
+            top: 50%;
+            margin-top: -5px;
+            left: 0;
+        }
+    }
+    .runState-error{
+        color: red;
+        position: relative;
+        padding-left: 15px;
+        margin-left: 20px;
+        &::before{
+            position: absolute;
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: red;
             border-radius: 100%;
             top: 50%;
             margin-top: -5px;

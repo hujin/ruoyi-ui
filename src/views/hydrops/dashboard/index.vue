@@ -187,8 +187,8 @@
         <el-dialog :visible.sync="visible" width="800px" custom-class="customDialog" destroy-on-close @close="handleCustomClose">
             <template slot="title">
                 <div>
-                    XXX道路
-                    <span class="runState-success">正常运行</span>
+                    {{dialogDetail.title}}
+                    <span :class="statusMap[dialogDetail.status] && statusMap[dialogDetail.status].type">{{statusMap[dialogDetail.status] && statusMap[dialogDetail.status].name}}</span>
                 </div>
             </template>
             <div class="detail-info">
@@ -333,6 +333,20 @@ export default {
 
             dialogDetail:{
 
+            },
+            statusMap:{
+                0:{
+                    name:'离线',
+                    type:'runState-info'
+                },
+                1:{
+                    name:'正常运行',
+                    type:'runState-success'
+                },
+                2:{
+                    name:'报警',
+                    type:'runState-error'
+                },
             }
         }
     },
@@ -1225,6 +1239,40 @@ export default {
             width: 10px;
             height: 10px;
             background: #05A75E;
+            border-radius: 100%;
+            top: 50%;
+            margin-top: -5px;
+            left: 0;
+        }
+    }
+    .runState-info{
+        color: #ccc;
+        position: relative;
+        padding-left: 15px;
+        margin-left: 20px;
+        &::before{
+            position: absolute;
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: #ccc;
+            border-radius: 100%;
+            top: 50%;
+            margin-top: -5px;
+            left: 0;
+        }
+    }
+    .runState-error{
+        color: red;
+        position: relative;
+        padding-left: 15px;
+        margin-left: 20px;
+        &::before{
+            position: absolute;
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: red;
             border-radius: 100%;
             top: 50%;
             margin-top: -5px;
