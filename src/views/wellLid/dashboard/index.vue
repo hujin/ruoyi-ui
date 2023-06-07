@@ -302,7 +302,8 @@ export default {
                 remark:''
             },
 
-            distanceStatus:false
+            distanceStatus:false,
+            layer:null
           
         }
     },
@@ -440,7 +441,10 @@ export default {
             })
         },
         initMarker(list){
-            let layer = new this.AMap.LabelsLayer({
+            if (this.layer) {
+                this.layer.clear()
+            }
+            this.layer = new this.AMap.LabelsLayer({
                     zooms: [3, 20],
                     zIndex: 111,
                     animation: false,
@@ -474,8 +478,8 @@ export default {
                 }
             }
 
-            layer.add(markers)
-            this.map.add(layer)
+            this.layer.add(markers)
+            this.map.add(this.layer)
             console.timeEnd('a')
 
         },

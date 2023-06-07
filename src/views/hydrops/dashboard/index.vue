@@ -486,7 +486,9 @@ export default {
             }
            
             result.forEach(item => {
-                this.addMarker(item)
+                if (item.latitude) {
+                    this.addMarker(item)
+                }
             })
         },
         zoomIn(){
