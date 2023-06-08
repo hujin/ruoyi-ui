@@ -250,15 +250,15 @@
                     <video id="dialogVideo" class="video-js" controls autoplay style="width:100%;height:100%" ></video>
                 </div>
                 <div class="btn-wrap" style="text-align:right">
-                    <div class="btn">
+                    <div class="btn" @click="goMonitorData">
                         数据分析
                     </div>  
-                    <div class="btn">
+                    <div class="btn" @click="goMonitorHistory">
                         历史数据
                     </div>  
-                    <div class="btn">
+                    <!-- <div class="btn">
                         报警处理
-                    </div>  
+                    </div>   -->
                 </div>
             </div>
         </el-dialog>
@@ -347,10 +347,17 @@ export default {
                     name:'报警',
                     type:'runState-error'
                 },
-            }
+            },
+            active_id:''
         }
     },
     methods:{
+        goMonitorData(){
+            this.$router.push(`/hydrops/monitor?id=${this.active_id}&tab=3`)
+        },
+        goMonitorHistory(){
+            this.$router.push(`/hydrops/monitor?id=${this.active_id}&tab=2`)
+        },
         handleCurrentChange(val){
             this.dataParams.pageNum = val
             this.getSlpPondingReportedDataBase()
@@ -551,7 +558,7 @@ export default {
                 position:[item.longitude, item.latitude],
                 map:this.map
             }).on('click', (event) => {
-                this.getDeviceInfoById(item.id)
+                this.getDeviceInfoById(item.id, item.uid)
                                             // console.log(event, 'marker click', item.id)
             })
         },
@@ -567,10 +574,11 @@ export default {
                 path:'/hydropsonment/weather-data?id=' + this.detail.id
             })
         },
-        getDeviceInfoById(id){
+        getDeviceInfoById(id, uid){
             getDeviceInfoById(id).then(res => {
                 if (res.code == 200) {
                     this.dialogDetail = res.data
+                    this.active_id = uid;
                     this.visible = true
                     this.$nextTick(()=>{
                         this.player = videojs(`dialogVideo`, {})

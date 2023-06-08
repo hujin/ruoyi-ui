@@ -129,26 +129,62 @@ export default {
 
                 list.push(first)
               })
-              if (list.length > 0) {
-                let item = list[0].children[0];
-                this.id = item.id;
-                this.baseInfo.road =  this.selectDictLabel(this.dict.type.sys_road, item.road),
-                this.baseInfo.name = item.name;
-                if (item.enable == '0') {
-                  this.baseInfo.enable = '非启用'
-                } else if (item.enable == '1') {
-                  this.baseInfo.enable = '启用'
-          
-                } else if (item.enable == '2') {
-                  this.baseInfo.enable = '移除'
-
-                }
-                
-              }
+             
               this.$set(this, 'treeData', list)
+              if (this.$route.query.id) {
+                this.$nextTick(() => {
+                  this.getNodeInfo(this.$route.query.id)
+                })
+              } else {
+                if (list.length > 0) {
+                  let item = list[0].children[0];
+                  this.id = item.id;
+                  this.baseInfo.road =  this.selectDictLabel(this.dict.type.sys_road, item.road),
+                  this.baseInfo.name = item.name;
+                  if (item.enable == '0') {
+                    this.baseInfo.enable = '非启用'
+                  } else if (item.enable == '1') {
+                    this.baseInfo.enable = '启用'
+          
+                  } else if (item.enable == '2') {
+                    this.baseInfo.enable = '移除'
+
+                  }
+                
+                }
+              }
             }
          }
       })
+    },
+    getNodeInfo(id){
+      let obj
+      this.treeData.forEach(road => {
+        if (road.children && road.children.length > 0) {
+          road.children.forEach(item => {            
+            if (item.id == id) {
+              obj = item
+            }
+          })
+        }
+      })
+
+      if (obj) {
+        this.active = this.$route.query.tab
+        let item = obj;
+        this.id = item.id;
+        this.baseInfo.road = this.selectDictLabel(this.dict.type.sys_road, item.road),
+        this.baseInfo.name = item.name;
+        if (item.enable == '0') {
+            this.baseInfo.enable = '非启用'
+        } else if (item.enable == '1') {
+            this.baseInfo.enable = '启用'
+          
+        } else if (item.enable == '2') {
+            this.baseInfo.enable = '移除'
+
+        }
+      }
     },
     getLastReportTime(){
       getLastReportTime({

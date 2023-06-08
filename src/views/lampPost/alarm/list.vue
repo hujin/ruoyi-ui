@@ -68,11 +68,22 @@
                             </template>
                         </el-table-column>
                         <el-table-column label="报警类型" align="center"  prop="warningTypeStr"  />
-                        <el-table-column label="报警描述" align="center"  prop="name"  />
-                        <el-table-column label="历史报警次数" align="center"  prop="name"  />
-                        <el-table-column label="报警来源" align="center"  prop="name"  />
-                        <el-table-column label="报警分析" align="center"  prop="name"  />
-                        <el-table-column label="定位" align="center"  prop="name"  />
+                        <el-table-column label="报警描述" align="center"  prop="warningRemark"  />
+                        <el-table-column label="历史报警次数" align="center"  prop="historyWarningCount"  />
+                        <el-table-column label="报警来源" align="center"  prop="warningSourceStr"  />
+                        <el-table-column label="报警分析" align="center"   >
+                            <template slot-scope="scope">
+                                <div style="color:#409EFE;cursor: pointer;" @click="handleAnalyse(scope.row)">查看</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="定位" align="center"  >
+                            <template slot-scope="scope">
+                                <div style="display:flex;align-items:center">
+                                    <div style="white-space:nowrap">{{scope.row.address}}</div>
+                                    <i @click="openMap(scope.row)" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
+                                </div>
+                            </template>
+                        </el-table-column>
                         <el-table-column label="操作" align="left"  width="250">
                             <template slot-scope="scope">
                                 <el-button
@@ -90,11 +101,11 @@
                                     type="text"
                                     @click="handleUpdate(scope.row)"
                                 >派单</el-button>
-                                <el-button
+                                <!-- <el-button
                                     size="mini"
                                     type="text"
                                     @click="handleUpdate(scope.row)"
-                                >导出</el-button>
+                                >导出</el-button> -->
                                 <el-button
                                     size="mini"
                                     type="text"
@@ -262,6 +273,7 @@
             </div>
         </el-dialog>
         <detail :dialogShow="detailState" :id="alarm_id" v-if="detailState"></detail>
+        <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
         
     </div>
 </template>
@@ -274,10 +286,12 @@ import { getAlarmList,
          getApplyDetail,
          createWorkOrder,
          deleteApply} from "@/api/lampPost";
+
+import showMap from '@/components/show-map/index.vue'
+
          
 import { listDept } from "@/api/system/dept";
 import { listUser } from "@/api/system/user";
-
 
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
@@ -286,6 +300,7 @@ export default {
     dicts: ['sys_road','sys_roadside','sys_device_type', 'sys_audit_status','sys_lamp_post_warning_type'],
     components:{
         detail,
+        showMap,
         Treeselect,
     },
     data(){
@@ -369,12 +384,24 @@ export default {
             },
             lampPostList:[],
             deviceList:[],
-             deptOptions: [],
+            deptOptions: [],
             auditUserList:[],
             handleUserList:[],
+            showMapState:false,
+            showMapLongitude:'',
+            showMapLatitude:'',
         }
     },
     methods:{
+        handleAnalyse(row){
+
+        },
+        openMap(row){
+            this.showMapLatitude = row.latitude
+            this.showMapLongitude = row.longitude
+
+            this.showMapState = true
+        },
         roadChange(val){
             console.log(val)
             if (val) {
@@ -441,8 +468,9 @@ export default {
             if (val == this.active) {
                 return;
             }
-
+            this.queryParams.pageNum = 1
             this.active = val;
+            this.getList()
         },
         handleAdd(){
             this.addState = true
@@ -454,6 +482,8 @@ export default {
 
         },
         getList(){
+            this.loading = true
+
             let params  = {
                 pageSize:this.queryParams.pageSize,
                 pageNum:this.queryParams.pageNum,
@@ -467,6 +497,8 @@ export default {
                 params.endTime = new Date(this.queryParams.time[1]).Format('yyyy-MM-dd')
             }
             getAlarmList(params).then(res => {
+                this.loading = false
+
                 if (res.code == 200) {
                     this.$set(this, 'list', res.rows)
                     this.total = res.total
