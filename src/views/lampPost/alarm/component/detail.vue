@@ -17,37 +17,37 @@
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">报警次数:</div>
-                        <div class="val">{{detail.warningTimes}}</div>
+                        <div class="val">{{detail.historyWarningCount}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备类型:</div>
-                        <div class="val">积水</div>
+                        <div class="val">xxxx</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">报警类型:</div>
-                        <div class="val">{{warningTypeFormat(detail.warningType)}}</div>
+                        <div class="val">{{detail.warningTypeStr}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
-                        <div class="label">报警等级:</div>
-                        <div class="val">{{detail.warningLevelStr + detail.warningExtraInfo}}</div>
+                        <div class="label">报警来源:</div>
+                        <div class="val">{{detail.warningSourceStr}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备型号:</div>
-                        <div class="val">{{detail.pondingMonitor.type}}</div>
+                        <div class="val">{{detail.type}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备UID:</div>
-                        <div class="val">{{detail.deviceUid}}</div>
+                        <div class="val">{{detail.poleUid}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
@@ -59,25 +59,25 @@
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">所属道路:</div>
-                        <div class="val">{{roadFormat(detail.pondingMonitor.road)}}</div>
+                        <div class="val">{{detail.roadStr}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备状态:</div>
-                        <div class="val">{{getEnableName(detail.pondingMonitor.enable)}}</div>
+                        <div class="val">{{getEnableName(detail.enable)}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">道路侧向:</div>
-                        <div class="val">{{roadSideFormat(detail.pondingMonitor.roadSide)}}</div>
+                        <div class="val">{{roadSideFormat(detail.roadSide)}}</div>
                     </div>
                 </el-col>
                 <el-col :span="24">
                     <div class="row">
                         <div class="label">报警描述:</div>
-                        <div class="val">{{detail.warningContent}}</div>
+                        <div class="val">{{detail.warningRemark}}</div>
                     </div>
                 </el-col>
                 <el-col :span="24">
@@ -221,7 +221,7 @@
     </el-dialog>
 </template>
 <script>
-import { getWarningDetail } from "@/api/hydrops";
+import {getAlarmDetail,} from "@/api/lampPost";
 import showMap from '@/components/show-map/index.vue'
 
 export default {
@@ -312,9 +312,9 @@ export default {
             return this.selectDictLabel(this.dict.type.sys_road, road);
         },
         getDetail(){
-            getWarningDetail({
-                id:this.id
-            }).then(res => {
+            getAlarmDetail(
+                this.id
+            ).then(res => {
                 if (res.code == 200) {
                     this.$set(this, 'detail', res.data)
                     let active = 0;

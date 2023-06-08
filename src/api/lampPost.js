@@ -401,6 +401,15 @@ export function submitAlarmHandleResult(data){
 }
 
 
+
+export function alarmCreateWorkOrder(data){
+    return request({
+        url:`/slp/slp/pole/warning/createWorkOrder`,
+        method:'post',
+        data
+    })
+}
+
 export function batchAlarmHandleResult(data){
     return request({
         url:`/slp/slp/pole/warning/batchUpdate`,

@@ -264,13 +264,6 @@
                     <span>{{detail.deviceName}}</span>
                 </el-form-item>
                 <el-form-item label="完成期限:">
-                    <el-date-picker
-                        v-model="assignForm.assign_time"
-                        type="date"
-                        placeholder="选择日期">
-                    </el-date-picker>
-                </el-form-item>
-                <el-form-item label="完成期限:">
                     <el-date-picker v-model="assignForm.expectedFinishTime" 
                                     type="date"
                                     placeholder="请选择完成期限"
@@ -326,7 +319,7 @@ import { getAlarmList,
          getAlarmDetail,
          addAlarm,
          deleteAlarm,
-         submitAlarmHandleResult,
+         alarmCreateWorkOrder,
          batchAlarmHandleResult} from "@/api/lampPost";
 
 import showMap from '@/components/show-map/index.vue'
@@ -682,7 +675,23 @@ export default {
 
         },
         submitAssign(){
+             this.$refs["assignForm"].validate(valid => {
+                if (valid) {
+                    let form = JSON.parse(JSON.stringify(this.assignForm))
 
+                    form['relationId'] = this.detail.id
+
+                    form.needCheck = form.needCheck == 1 ? true : false
+
+                    alarmCreateWorkOrder(form).then(res => {
+                        if (res.code == 200) {
+                            this.$modal.msgSuccess("派单成功");
+                            this.assignState = false
+                            this.getList();
+                        }
+                    })
+                }
+            });
         }
     },
     computed:{

@@ -32,14 +32,14 @@ import Cookies from 'js-cookie'
 export default {
     data(){
         return {
-            lampPost:require(`../../assets/images/platform/icon-1.png`),
-            lighting:require(`../../assets/images/platform/icon-2.png`),
-            hydrops:require(`../../assets/images/platform/icon-4.png`),
-            wellLid:require(`../../assets/images/platform/icon-3.png`),
-            video:require(`../../assets/images/platform/icon-5.png`),
-            openPlatform:require(`../../assets/images/platform/icon-6.png`),
-            cockpit:require(`../../assets/images/platform/icon-7.png`),
-            environment:require(`../../assets/images/platform/icon-8.png`),
+            lampPost:require(`../../assets/images/platform/icon-2.png`),
+            lighting:require(`../../assets/images/platform/icon-3.png`),
+            hydrops:require(`../../assets/images/platform/icon-5.png`),
+            wellLid:require(`../../assets/images/platform/icon-4.png`),
+            video:require(`../../assets/images/platform/icon-7.png`),
+            openPlatform:require(`../../assets/images/platform/icon-8.png`),
+            cockpit:require(`../../assets/images/platform/icon-1.png`),
+            environment:require(`../../assets/images/platform/icon-6.png`),
             index:require(`../../assets/images/platform/icon-9.png`),
 
         }
@@ -53,6 +53,8 @@ export default {
             } else if (item.name == 'Cockpit') {
                 window.open(item.path)
 
+            } else if (item.name == 'Index'){
+                this.$router.push('/system/user')
             } else {
                 
                 this.$router.push(item.path)
@@ -78,6 +80,7 @@ export default {
         }),
         list() {
             let systemList =  JSON.parse(JSON.stringify(this.systemList));
+            console.log(systemList)
             systemList.forEach(item => {
                 let key = item.path.replace('/', '')
                 item['icon'] = this[key]
