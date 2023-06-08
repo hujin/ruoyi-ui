@@ -29,7 +29,7 @@
         </div>
         <div class="section-title">
             <div class="label">总感知设备数量:</div>
-            <div class="val">185700个</div>
+            <div class="val">{{currentMonthDeviceCount || 0}}个</div>
         </div>
         <div class="device-type-wrap">
             <div class="device-type-list">
@@ -174,7 +174,8 @@ export default {
                 time:['',''],
                 date_type:'本月',
                 type:'按道路'
-            }
+            },
+            currentMonthDeviceCount:''
         }
     },
     watch:{
@@ -273,13 +274,15 @@ export default {
             }
 
             // if (this.queryForm.time.length > 0) {
-            //     params.beginTime = new Date(this.queryForm.time[0]).Format('yyyy-MM-dd')
-            //     params.endTime = new Date(this.queryForm.time[1]).Format('yyyy-MM-dd')
+            //     params.beginTime = new Date(this.queryForm.time[0]).getTime()
+            //     params.endTime = new Date(this.queryForm.time[1]).getTime()
             // }
             console.log(params)
 
             getDeviceCount(params).then(res => {
-
+                if (res.code == 200) {
+                    this.currentMonthDeviceCount = res.data.currentMonthDeviceCount   
+                }
             })
         }
     },

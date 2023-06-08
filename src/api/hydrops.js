@@ -271,3 +271,26 @@ export function getWarningHandleList(params){
         method:'get'
     })
 }
+
+export function deleteWarning(ids){
+    return request({
+        url:`/slp/slp/ponding/warning/${ids}`,
+        method:'delete'
+    })
+}
+
+export function warningHandle(data){
+    return request({
+        url:`/slp/slp/ponding/warning/handle`,
+        method:'put',
+        data,
+    })
+}
+
+export function warningCreateWorkOrder(data){
+    return request({
+        url:`/slp/slp/ponding/warning/createWorkOrder`,
+        method:'post',
+        data,
+    })
+}

@@ -97,7 +97,8 @@ export default {
                 date_type:'本日'
             },
             list:[],
-            totalMountingPercent:''
+            totalMountingPercent:'',
+            heatmap:null
         }
     },
     watch:{
@@ -197,14 +198,18 @@ export default {
 
             getDeviceMounting(params).then(res => {
                 if (res.code == 200) {
+                    if (this.heatmap) {
+                        this.heatmap.setMap(null)
+                    }
+
                     if (res.data.slpPoleComprehensiveInfoVo) {
-                        var heatmap = new this.AMap.Heatmap(this.map, {
+                        this.heatmap = new this.AMap.Heatmap(this.map, {
                             radius:25,
                             opacity: [0, 0.8],
                             
                         })
 
-                        heatmap.setDataSet({
+                        this.heatmap.setDataSet({
                             data:res.data.slpPoleComprehensiveInfoVo.slpHeatMapList
                         })
                     }

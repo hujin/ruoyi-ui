@@ -146,7 +146,7 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item label="申请设备:" prop="applyDeviceUid">
-                        <el-select v-model="auditForm.applyDeviceUid" placeholder="请选择道路" style="width:100%" @change="deviceChange">
+                        <el-select v-model="auditForm.applyDeviceUid" placeholder="请选择申请设备" style="width:100%" @change="deviceChange">
                             <el-option
                                 v-for="dict in deviceList"
                                 :key="dict.uid"

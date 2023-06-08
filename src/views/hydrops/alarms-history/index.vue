@@ -2,25 +2,34 @@
     <div class="app-container">
         <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
             <el-form-item label="站点名称" prop="status">
-                <el-input v-model="queryParams.name"></el-input>
+                <el-input v-model="queryParams.name" placeholder="请输入站点名称"></el-input>
             </el-form-item>
             <el-form-item label="报警类型" prop="type">
                 <el-select
                     v-model="queryParams.type"
-                    placeholder="请输入报警类型"
-                    clearable
-                    @keyup.enter.native="handleQuery">
-
+                    placeholder="请选择报警类型"
+                    clearable>
+                     <el-option
+                            v-for="dict in dict.type.sys_hydrops_warning_type"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
                 </el-select>
             </el-form-item>
 
             <el-form-item label="报警等级" prop="level">
                 <el-select
                     v-model="queryParams.level"
-                    placeholder="请输入报警类型"
+                    placeholder="请选择报警等级"
                     clearable
                     @keyup.enter.native="handleQuery">
-
+                     <el-option
+                            v-for="dict in dict.type.sys_hydrops_warning_level"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
                 </el-select>
             </el-form-item>
             
@@ -54,26 +63,35 @@
             <el-table-column type="selection" width="50" align="center" />
             <el-table-column type="index" label="序号" width="50" align="center" />
 
-            <el-table-column label="设备名称" align="center"  prop="name"  />
+            <el-table-column label="设备名称" align="left"  prop="deviceName"  />
             
-            <el-table-column label="报警类型" align="center" prop="type" />
-            <el-table-column label="报警等级" align="center" prop="uid" />
-            <el-table-column label="报警描述" align="center"  >
+            <el-table-column label="报警类型" align="center" width="80" >
                 <template slot-scope="scope">
-                    <div>{{scope.row.status == 1 ? '正常' : '异常'}}</div>
+                    <div>{{warningTypeFormat(scope.row)}}</div>
                 </template>
             </el-table-column>
-            <el-table-column label="报警时间" align="center" >
+            <el-table-column label="报警等级" align="left" prop="warningLevelStr" width="200">
                 <template slot-scope="scope">
-                    <div>{{getEnableName(scope.row.enable)}}</div>
+                    <div>{{scope.row.warningLevelStr + scope.row.warningExtraInfo}}</div>
                 </template>
             </el-table-column>
-            <el-table-column label="地点" align="center" prop="installTime" />
-            <el-table-column label="处理人" align="center" prop="installTime" />
-            <el-table-column label="处理结果" align="center" prop="installTime" />
-            <el-table-column label="处理时间" align="center" prop="installTime" />
-
-          
+            <el-table-column label="报警描述" align="left" prop="warningContent"  ></el-table-column>
+            <el-table-column label="报警时间" align="left" prop="createTime" width="160"></el-table-column>
+            <el-table-column label="地点" align="left" width="200">
+                <template slot-scope="scope">
+                    <div style="display:flex;align-items:center">
+                        <div style="white-space:nowrap">{{scope.row.address}}</div>
+                        <i @click="openMap(scope.row)" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
+                    </div>
+                </template>
+            </el-table-column>
+            <el-table-column label="处理人" align="center" prop="handleUsername" />
+            <el-table-column label="处理结果" align="center" >
+                <template slot-scope="scope">
+                    <div>{{handleResultFormat(scope.row)}}</div>
+                </template>
+            </el-table-column>
+            <el-table-column label="处理时间" align="center" prop="handleTimeStr" />
             <el-table-column label="操作" align="center" >
                 <template slot-scope="scope">
                     
@@ -82,11 +100,11 @@
                         type="text"
                         @click="handleView(scope.row)"
                     >详情</el-button>
-                    <el-button
+                    <!-- <el-button
                         size="mini"
                         type="text"
                         @click="handleDelete(scope.row)"
-                    >导出</el-button>
+                    >导出</el-button> -->
                     <el-button
                         size="mini"
                         type="text"
@@ -103,109 +121,32 @@
             :limit.sync="queryParams.pageSize"
             @pagination="getList"
         />
-        <el-dialog :title="title" :visible.sync="open" width="1200px" append-to-body>
-            <el-form ref="form" :model="form" :rules="rules" label-width="140px">
-                <div class="section">
-                    <el-row>
-                        <el-col :span="8">
-                            <el-form-item prop="name" label="序号">
-                                <span>积水设备</span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="name" label="设备名称">
-                                <span>{{form.name}}</span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="type" label="报警次数">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="设备类型">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="报警类型">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="报警等级">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="设备型号">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="设备UID">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="报警时间">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="所属道路">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="设备状态">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item prop="uid" label="道路侧向">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="24">
-                            <el-form-item prop="uid" label="详细地址">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="24">
-                            <el-form-item prop="uid" label="报警描述">
-                              <span></span>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
-                </div>
-                
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="submitForm">确 定</el-button>
-                <el-button @click="cancel">取 消</el-button>
-            </div>
-        </el-dialog>
+    
         <select-map v-if="mapDialog" :visible="mapDialog" :lng="form.longitude" :lat="form.latitude" @close="mapDialog = false" @add="addMarker"></select-map>
+        <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
+        <detail :dialogShow="detailState" :id="detail_id" v-if="detailState" @close="detailState = false"></detail>
+
     </div>
 </template>
 <script>
-import { getDeviceList,
-         getDeviceDetail,
-         editDevice,
-         addDevice,
-         deleteDevice } from "@/api/video";
-
-import { getWarningHandleList } from "@/api/hydrops";
+import { getWarningHandleList,deleteWarning } from "@/api/hydrops";
 
 import selectMap from '@/components/select-map/index.vue'
+import showMap from '@/components/show-map/index.vue'
+
+import detail from './component/detail.vue'
+
 
 export default {
-    dicts: ['sys_road','sys_roadside'],
+    dicts: ['sys_road','sys_roadside', 'sys_hydrops_warning_type', 'sys_hydrops_warning_handle', 'sys_hydrops_warning_level'],
+
     components:{
-        selectMap
+        selectMap,
+        showMap,
+        detail
     },
     data(){
+        
         return {
             // 遮罩层
             loading: false,
@@ -264,10 +205,33 @@ export default {
 
             },
             state:'',
-            mapDialog:false
+            mapDialog:false,
+            showMapState:false,
+            showMapLongitude:'',
+            showMapLatitude:'',
+            detailState:false,
+            detail_id:''
         }
     },
     methods:{
+        openMap(row){
+            this.showMapLatitude = row.latitude
+            this.showMapLongitude = row.longitude
+
+            this.showMapState = true
+        },
+        handleResultFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_hydrops_warning_handle, row.handleResult);
+        },
+        roadSideFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_roadside, row.roadSide);
+        },
+        roadFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_road, row.road);
+        },
+        warningTypeFormat(row) {
+            return this.selectDictLabel(this.dict.type.sys_hydrops_warning_type, row.warningType);
+        },
         getEnableName(val){
             let result = ''
 
@@ -290,11 +254,8 @@ export default {
             this.mapDialog = false
         },
         handleView(row){
-            getDeviceDetail(row.id).then(res => {
-                this.$set(this, 'form', res.data);
-                this.state = 'view'
-                this.open = true
-            })
+            this.detail_id = row.id;
+            this.detailState = true
         },
         handleDownload(){
             
@@ -305,16 +266,10 @@ export default {
                 road:this.queryParams.road,
             }, `device_${new Date().getTime()}.xlsx`) 
         },
-        handleUpdate(row){
-            getDeviceDetail(row.id).then(res => {
-                this.$set(this, 'form', res.data);
-                this.state = 'update'
-                this.open = true
-            })
-        },
+        
         handleDelete(row){
             this.$modal.confirm('是否确认删除该数据吗？').then(function() {
-                return deleteDevice(row.id);
+                return deleteWarning(row.id);
             }).then(() => {
                 this.getList();
                 this.$modal.msgSuccess("删除成功");
@@ -351,7 +306,7 @@ export default {
             }
 
             this.$modal.confirm('是否确认删除该数据吗？').then(() => {
-                return deleteDevice(this.ids.join(','));
+                return deleteWarning(this.ids.join(','));
             }).then(() => {
                 this.getList();
                 this.$modal.msgSuccess("删除成功");
@@ -365,29 +320,7 @@ export default {
                 }
             })
         },
-        submitForm(){
-            this.$refs["form"].validate(valid => {
-                if (valid) {
-                    if (this.form.id) {
-                        editDevice(this.form).then(response => {
-                            this.$modal.msgSuccess("修改成功");
-                            this.open = false;
-                            this.getList();
-                        });
-                    } else {
-                        addDevice(this.form).then(response => {
-                            this.$modal.msgSuccess("新增成功");
-                            this.open = false;
-                            this.getList();
-                        });
-                    }
-                }
-            });
-        },
-        cancel(){
-            this.reset();
-            this.open = false
-        },
+        
         reset(){
             this.form = {
                 id:'',

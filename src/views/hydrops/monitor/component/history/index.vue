@@ -46,7 +46,7 @@
             </el-table-column>
             <el-table-column label="积水时长min" prop="rainfall" align="center" >
                 <template slot-scope="scope">
-                    <div>{{scope.row.warningContinueTime + 'min'}}</div>
+                    <div>{{(scope.row.warningContinueTime / 1000 / 60).toFixed(2) + 'min'}}</div>
                 </template>
             </el-table-column>
         </el-table>
@@ -150,10 +150,10 @@ export default {
             getHistoryListPaged(parmas).then(res => {
                 this.loading = false
                 if (res.code == 200) {
-                    if (res.data) {
-                        this.total = res.data.total
-                        this.$set(this, 'list', res.data.rows)
-                    }
+                    // if (res.rows) {
+                        this.total = res.total
+                        this.$set(this, 'list', res.rows || [])
+                    // }
                 }
             })
         }

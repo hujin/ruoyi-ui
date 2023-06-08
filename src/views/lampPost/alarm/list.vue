@@ -59,16 +59,21 @@
                 <div class="grid-wrap">
                     <el-table ref="tables" style="width:100%;height:100%" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
                         <el-table-column type="selection" width="50" align="center" />
-                        <el-table-column label="设备名称" align="center"  prop="name"  />
-                        <el-table-column label="设备类型" align="center"  prop="name"  />
-                        <el-table-column label="报警时间" align="center"  prop="name"  />
-                        <el-table-column label="报警类型" align="center"  prop="name"  />
+                        <el-table-column label="序号" align="center" type="index" />
+                        <el-table-column label="设备名称" align="center"  prop="deviceName"  />
+                        <el-table-column label="设备类型" align="center"  prop="typeStr"  />
+                         <el-table-column label="报警时间" align="center"  prop="createTime"  >
+                            <template slot-scope="scope">
+                                <div>{{new Date(scope.row.createTime).Format('yyyy-MM-dd')}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="报警类型" align="center"  prop="warningTypeStr"  />
                         <el-table-column label="报警描述" align="center"  prop="name"  />
                         <el-table-column label="历史报警次数" align="center"  prop="name"  />
                         <el-table-column label="报警来源" align="center"  prop="name"  />
                         <el-table-column label="报警分析" align="center"  prop="name"  />
                         <el-table-column label="定位" align="center"  prop="name"  />
-                        <el-table-column label="操作" align="center" >
+                        <el-table-column label="操作" align="left"  width="250">
                             <template slot-scope="scope">
                                 <el-button
                                     size="mini"
@@ -118,26 +123,45 @@
                 <el-form-item label="申请人:">
                     <span>{{nickName}}</span>
                 </el-form-item>
-                <el-form-item label="故障维修设备:">
-                    <el-select v-model="addForm.device_id" placeholder="请选择设备类型"></el-select>
+
+                <el-form-item label="灯杆道路:">
+                    <el-select v-model="addForm.road" placeholder="请选择道路" style="width:100%" @change="roadChange">
+                        <el-option
+                                v-for="dict in dict.type.sys_road"
+                                :key="dict.value"
+                                :label="dict.label"
+                                :value="dict.value"/>
+                    </el-select>
+
                 </el-form-item>
                 <el-form-item label="关联灯杆:">
-                    <div>
-                        <el-select v-model="addForm.road" placeholder="请选择道路"></el-select>
-                    </div>
-                    <div>
-                        <el-select v-model="addForm.lamp_post_id" placeholder="请选择灯杆编号"></el-select>
-                    </div>
+                    <el-select v-model="addForm.lampPostId" placeholder="请选择灯杆编号" style="width:100%" @change="lampPostChange">
+                         <el-option
+                                v-for="dict in lampPostList"
+                                :key="dict.uid"
+                                :label="dict.name"
+                                :value="dict.uid"/>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="故障维修设备:">
+                    <el-select v-model="addForm.device_id" placeholder="请选择设备类型" style="width:100%" @change="deviceChange">
+                       <el-option
+                                v-for="dict in deviceList"
+                                :key="dict.uid"
+                                :label="dict.name"
+                                :value="dict.uid"/>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="报警类型:">
-                    <el-select v-model="addForm.alarm_type" placeholder="请选择报警类型"></el-select>
+                    <el-select v-model="addForm.alarm_type" placeholder="请选择报警类型" style="width:100%"></el-select>
                 </el-form-item>
                 <el-form-item label="内容描述:">
-                    <el-input type="textarea" :rows="2" v-model="addForm.remark" placeholder="请输入"></el-input>
+                    <el-input type="textarea" :rows="2" v-model="addForm.remark" placeholder="请输入" style="width:100%"></el-input>
                 </el-form-item>
                 <el-form-item label="工单完成期限:">
                     <el-date-picker
                         v-model="addForm.time"
+                        style="width:100%"
                         type="date"
                         placeholder="选择日期">
                     </el-date-picker>
@@ -244,11 +268,26 @@
 <script>
 
 import detail from './component/detail.vue'
+import { getAlarmList,
+         submitApply,
+         getDeviceList,
+         getApplyDetail,
+         createWorkOrder,
+         deleteApply} from "@/api/lampPost";
+         
+import { listDept } from "@/api/system/dept";
+import { listUser } from "@/api/system/user";
+
+
+import Treeselect from "@riophae/vue-treeselect";
+import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {
-    dicts: ['sys_road','sys_roadside','sys_device_type', 'sys_audit_status'],
-    components:{detail},
-   
+    dicts: ['sys_road','sys_roadside','sys_device_type', 'sys_audit_status','sys_lamp_post_warning_type'],
+    components:{
+        detail,
+        Treeselect,
+    },
     data(){
         return {
             loading: false,
@@ -277,12 +316,19 @@ export default {
             list:[],
             addState:false,
             addForm:{
-                device_id:'',
-                lamp_post_id:'',
                 road:'',
-                alarm_type:'',
-                remark:'',
-                time:''
+                applyUserId:'',
+                applyDeptId: undefined,
+                applyType:'',
+                auditUserId: '',
+                lampPostId:'',
+                deviceUid:'',
+                applyDevice:'',
+                applyContent:'',
+                serviceLifeType:'LONG',
+                serviceLifeTime:[],
+                serviceLifeStartTime:'',
+                serviceLifeEndTime:''
             },
             addRules:{
                 
@@ -320,10 +366,71 @@ export default {
             alarm_id:'',
             detail:{
 
-            }
+            },
+            lampPostList:[],
+            deviceList:[],
+             deptOptions: [],
+            auditUserList:[],
+            handleUserList:[],
         }
     },
     methods:{
+        roadChange(val){
+            console.log(val)
+            if (val) {
+                this.getDeviceList(val)
+            }
+        },
+        getDeviceList(road){
+            let params = {
+                road,
+                pageNum: 1,
+                pageSize: 9999,
+            }
+
+            getDeviceList(params).then(res => {
+                if (res.code == 200) {
+                    this.$set(this, 'lampPostList', res.rows)
+                }
+            })
+        },
+        lampPostChange(val){
+            if (val) {
+                let device_list = []
+                this.lampPostList.forEach(item => {
+                    if (item.uid == val){
+                        device_list = item.slpOtherDeviceInfoList
+                    }
+                })
+
+                this.$set(this, 'deviceList', device_list)
+            }
+        },
+        initDept(){
+            listDept().then(response => {
+                this.deptOptions = this.handleTree(response.data, "deptId");
+            });
+        },
+        /** 转换部门数据结构 */
+        normalizer(node) {
+            if (node.children && !node.children.length) {
+                delete node.children;
+            }
+            return {
+                id: node.deptId,
+                label: node.deptName,
+                children: node.children
+            };
+        },
+        deviceChange(val){
+            if (val) {
+                this.deviceList.forEach(item => {
+                    if (item.uid == val) {
+                        this.auditForm.applyDevice = item.type
+                    }
+                })
+            }
+        },
         handleQuery(){
 
         },
@@ -347,7 +454,24 @@ export default {
 
         },
         getList(){
-
+            let params  = {
+                pageSize:this.queryParams.pageSize,
+                pageNum:this.queryParams.pageNum,
+                startType:'DAY',
+                beginTime:'',
+                endTime:'',
+                type: this.queryParams.type
+            }
+            if (this.queryParams.time.length > 0) {
+                params.beginTime = new Date(this.queryParams.time[0]).Format('yyyy-MM-dd')
+                params.endTime = new Date(this.queryParams.time[1]).Format('yyyy-MM-dd')
+            }
+            getAlarmList(params).then(res => {
+                if (res.code == 200) {
+                    this.$set(this, 'list', res.rows)
+                    this.total = res.total
+                }
+            })
         },
         handleSelectionChange(selection) {
             this.ids = selection.map(item => item.id);
@@ -373,6 +497,9 @@ export default {
             console.log(this.$store.state.user)
             return this.$store.state.user.nickName
         }
+    },
+    created(){
+        this.getList()
     }
 }
 </script>

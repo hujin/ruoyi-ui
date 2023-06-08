@@ -65,17 +65,36 @@
                 <div class="grid-wrap">
                     <el-table ref="tables" style="width:100%;height:100%" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
                         <el-table-column type="selection" width="50" align="center" />
-                        <el-table-column label="序号" align="center"  prop="name"  />
-                        <el-table-column label="设备名称" align="center"  prop="name"  />
-                        <el-table-column label="设备状态" align="center"  prop="name"  />
-                        <el-table-column label="设备类型" align="center"  prop="name"  />
-                        <el-table-column label="报警时间" align="center"  prop="name"  />
-                        <el-table-column label="报警类型" align="center"  prop="name"  />
-                        <el-table-column label="次数" align="center"  prop="name"  />
-                        <el-table-column label="来源" align="center"  prop="name"  />
-                        <el-table-column label="处理单位" align="center"  prop="name"  />
-                        <el-table-column label="定位" align="center"  prop="name"  />
-                        <el-table-column label="处理时间" align="center"  prop="name"  />
+                        <el-table-column label="序号" align="center" type="index" />
+                        <el-table-column label="设备名称" align="center"  prop="deviceName"  />
+                        <el-table-column label="设备状态" align="center" >
+                            <template slot-scope="scope">
+                                <div>{{scope.row.status == 1 ? '正常' : '异常'}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="设备类型" align="center"  prop="typeStr"  />
+                        <el-table-column label="报警时间" align="center"  prop="createTime"  >
+                            <template slot-scope="scope">
+                                <div>{{new Date(scope.row.createTime).Format('yyyy-MM-dd')}}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="报警类型" align="center"  prop="warningTypeStr"  />
+                        <el-table-column label="次数" align="center"  prop="historyWarningCount"  />
+                        <el-table-column label="来源" align="center"  prop="warningSource"  />
+                        <el-table-column label="处理单位" align="center"  prop="handleUserDept"  />
+                        <el-table-column label="定位" align="center"    >
+                             <template slot-scope="scope">
+                                <div style="display:flex;align-items:center">
+                                    <div style="white-space:nowrap">{{scope.row.address}}</div>
+                                    <i @click="openMap(scope.row)" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
+                                </div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="处理时间" align="center"  prop="handleTime"  >
+                            <template slot-scope="scope">
+                                <div>{{new Date(scope.row.handleTime).Format('yyyy-MM-dd')}}</div>
+                            </template>
+                        </el-table-column>
                         <el-table-column label="操作" align="center" >
                             <template slot-scope="scope">
                                 
@@ -103,6 +122,8 @@
             </div>
         </div>
         <detail :dialogShow="detailShow" :id="alarm_id" v-if="detailShow"></detail>
+        <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
+
     </div>
 </template>
 <script>
@@ -110,9 +131,13 @@ import * as echarts from 'echarts'
 
 import detail from './component/detail.vue'
 
+import { getAlarmHistoryDashboard, getAlarmHistoryList } from "@/api/lampPost";
+
 export default {
     dicts: ['sys_road','sys_roadside','sys_device_type'],
-    components:{detail},
+    components:{
+        detail
+    },
     data(){
         return {
             alarm_id:'',
@@ -140,15 +165,45 @@ export default {
             },
             ids:[],
             list:[],
-            chartShow:false,
+            chartShow:true,
             chart1:null,
+            yAxis1:[],
             chart2:null,
-            detailShow:false
+            yAxis2:[],
+            chart3:null,
+            xAxis3:[],
+            yAxis3:[],
+
+            detailShow:false,
+            showMapState:false,
+            showMapLongitude:'',
+            showMapLatitude:'',
         }
     },
     methods:{
-        handleQuery(){
+        openMap(row){
+            this.showMapLatitude = row.latitude
+            this.showMapLongitude = row.longitude
 
+            this.showMapState = true
+        },
+        getEnableName(val){
+            let result = ''
+
+            if (val == '0') {
+                result = '非启用'
+            } else if (val == 1) {
+                result = '启用'
+
+            } else if (val == 2) {
+                result = '移除'
+
+            } 
+
+            return result
+        },
+        handleQuery(){
+            this.getAlarmHistoryDashboard()
         },
         resetQuery(){
 
@@ -186,11 +241,7 @@ export default {
                         labelLine: {
                             show: false
                         },
-                        data: [
-                            { value: 1048, name: '人工上报' },
-                            { value: 735, name: '系统上报' },
-                            { value: 580, name: '巡查上报' },
-                        ]
+                        data: this.yAxis1
                     }
                 ]
             };
@@ -229,12 +280,7 @@ export default {
                         labelLine: {
                             show: false
                         },
-                        data: [
-                            { value: 1048, name: '路灯报警数' },
-                            { value: 735, name: '集中控制报警器' },
-                            { value: 580, name: '井盖报警数' },
-                            { value: 580, name: '监控报警器' },
-                        ]
+                        data: this.yAxis2
                     }
                 ]
             };
@@ -245,10 +291,14 @@ export default {
             this.chart3 = echarts.init(el);
 
             let option = {
+                tooltip:{
+                    show:true,
+                    trigger:'item'
+                },
                 color:['#6ADCAF','#6395F9','#F7C32D'],
                 xAxis: {
                     type: 'category',
-                    data: ['2022/1/1', '2022/1/2', '2022/1/3', '2022/1/4', '2022/1/5', '2022/1/6', '2022/1/7']
+                    data: this.xAxis3
                 },
                 legend: {
                     top: '5%',
@@ -263,17 +313,17 @@ export default {
                 },
                 series: [
                     {
-                        data: [120, 200, 120, 80, 70, 110, 130],
+                        data: this.yAxis3[0],
                         name: '新增总数',
                         type: 'bar'
                     },
                     {
-                        data: [130, 220, 150, 50, 20, 112, 120],
+                        data: this.yAxis3[1],
                         name: '完成总数',
                         type: 'bar'
                     },
                     {
-                        data: [110, 190, 170, 660, 40, 113, 100],
+                        data: this.yAxis3[2],
                         name: '累积未处理总数',
                         type: 'bar'
                     }
@@ -300,7 +350,24 @@ export default {
 
         },
         getList(){
-
+            let params  = {
+                pageSize:this.queryParams.pageSize,
+                pageNum:this.queryParams.pageNum,
+                startType:'DAY',
+                beginTime:'',
+                endTime:'',
+                type: this.queryParams.type
+            }
+            if (this.queryParams.time.length > 0) {
+                params.beginTime = new Date(this.queryParams.time[0]).Format('yyyy-MM-dd')
+                params.endTime = new Date(this.queryParams.time[1]).Format('yyyy-MM-dd')
+            }
+            getAlarmHistoryList(params).then(res => {
+                if (res.code == 200) {
+                    this.$set(this, 'list', res.rows)
+                    this.total = res.total
+                }
+            })
         },
         handleSelectionChange(){
             
@@ -313,12 +380,102 @@ export default {
 
             if (this.chartShow) {
                 this.$nextTick(() => {
-                    this.initChart1()
-                    this.initChart2()
-                    this.initChart3()
+
+                        this.initChart1()
+                        this.initChart2()
+                        this.initChart3()
+                    
                 })
             }
-        }   
+        },
+        getAlarmHistoryDashboard(){
+            let params  = {
+                startType:'DAY',
+                beginTime:'',
+                endTime:'',
+                type: this.queryParams.type
+            }
+            if (this.queryParams.time.length > 0) {
+                params.beginTime = new Date(this.queryParams.time[0]).Format('yyyy-MM-dd')
+                params.endTime = new Date(this.queryParams.time[1]).Format('yyyy-MM-dd')
+            }
+            getAlarmHistoryDashboard(params).then(res => {
+                if (res.code == 200) {
+                    if (res.data) {
+                        let yAxis1 = []
+                        yAxis1.push({
+                            name:'人工上报',
+                            value:res.data.personnelWarningCount
+                        })
+
+                        yAxis1.push({
+                            name:'系统上报',
+                            value:res.data.systemWarningCount
+                        })
+
+                        yAxis1.push({
+                            name:'巡查上报',
+                            value:res.data.inspectionCount || 0
+                        })
+
+                        this.$set(this, 'yAxis1', yAxis1)
+                        if (this.chartShow) {
+                            this.$nextTick(() => {
+                                this.initChart1()
+                            })
+                        }
+                       
+
+                        if (res.data.slpDeviceWarningTypeVoList){
+                            let yAxis2 = []
+                            
+                            res.data.slpDeviceWarningTypeVoList.forEach(item => {
+                                yAxis2.push({
+                                    name:item.warningDeviceStr,
+                                    value:item.warningCount
+                                })
+                            })
+
+                            this.$set(this, 'yAxis2', yAxis2)
+                            if (this.chartShow) {
+                                this.$nextTick(() => {
+                                    this.initChart2()
+                                })
+                            }
+                        }
+
+                        if (res.data.slpDeviceWarningReportFormsVoList) {
+                            let xAxis3 = []
+                            let yAxis3 = [[],[],[]]
+
+                            res.data.slpDeviceWarningReportFormsVoList.forEach(item=> {
+                                xAxis3.push(item.timeStr)
+                                yAxis3[0].push(item.newAddCount)
+                                yAxis3[1].push(item.finishCount)
+                                yAxis3[2].push(item.notFinishCount)
+
+                            })
+
+                            this.$set(this, 'xAxis3', xAxis3)
+                            this.$set(this, 'yAxis3', yAxis3)
+
+                            if (this.chartShow) {
+                                this.$nextTick(() => {
+                                    this.initChart3()
+                                })
+                            }
+
+                        }
+                    } else {
+                        this.chartShow = false
+                    }
+                }
+            })
+        }  
+    },
+    created(){
+        this.getList()
+        this.getAlarmHistoryDashboard()
     }
 }
 </script>

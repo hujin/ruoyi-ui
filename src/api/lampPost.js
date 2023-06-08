@@ -368,3 +368,27 @@ export function getMountingAnalysis(){
         method:'get'
     })
 }
+
+export function getAlarmList(params){
+    return request({
+        url:`/slp/slp/pole/warning/list`,
+        method:'get',
+        params
+    })
+}
+
+export function getAlarmHistoryDashboard(params){
+    return request({
+        url:`/slp/slp/pole/warning/dashboard`,
+        method:'get',
+        params
+    })
+}
+
+export function getAlarmHistoryList(params){
+    return request({
+        url:`/slp/slp/pole/warning/getList`,
+        method:'get',
+        params
+    })
+}
