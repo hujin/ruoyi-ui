@@ -3,13 +3,13 @@
         <div class="header">
             <el-dropdown>
                 <div class="el-dropdown-link">
-                    <el-avatar :size="32"></el-avatar>
-                    <span class="nickname">系统管理员</span>
+                    <el-avatar :src="avatar" :size="32"></el-avatar>
+                    <span class="nickname">{{nickName}}</span>
                     <i class="el-icon-arrow-down el-icon--right" style="font-size:20px"></i>
                 </div>
                 <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item>权限</el-dropdown-item>
-                    <el-dropdown-item>退出</el-dropdown-item>
+                    <el-dropdown-item divided @click.native="logout">退出</el-dropdown-item>
                 </el-dropdown-menu>
             </el-dropdown>
         </div>
@@ -40,6 +40,7 @@ export default {
             openPlatform:require(`../../assets/images/platform/icon-6.png`),
             cockpit:require(`../../assets/images/platform/icon-7.png`),
             environment:require(`../../assets/images/platform/icon-8.png`),
+            index:require(`../../assets/images/platform/icon-9.png`),
 
         }
     },
@@ -56,10 +57,25 @@ export default {
                 
                 this.$router.push(item.path)
             }
+        },
+        async logout() {
+            this.$confirm('确定注销并退出系统吗？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$store.dispatch('LogOut').then(() => {
+                location.href = '/platform';
+                })
+            }).catch(() => {});
         }
     },
     computed:{
         ...mapGetters(["systemList"]),
+        ...mapState({
+            nickName: state => state.user.nickName,
+            avatar: state => state.user.avatar,
+        }),
         list() {
             let systemList =  JSON.parse(JSON.stringify(this.systemList));
             systemList.forEach(item => {
@@ -98,6 +114,7 @@ export default {
         .el-dropdown-link{
             display: flex;
             align-items: center;
+            cursor: pointer;
 
             .nickname{
                 font-size: 20px;
