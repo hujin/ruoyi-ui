@@ -121,7 +121,7 @@
                 />
             </div>
         </div>
-        <detail :dialogShow="detailShow" :id="alarm_id" v-if="detailShow"></detail>
+        <detail :dialogShow="detailShow" :id="alarm_id" v-if="detailShow" @close="detailShow = false"></detail>
         <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
 
     </div>

@@ -141,7 +141,7 @@
                             <el-option
                                 v-for="dict in lampPostList"
                                 :key="dict.uid"
-                                :label="dict.name"
+                                :label="dict.uid ? (dict.name + '(' + dict.uid + ')'): dict.name"
                                 :value="dict.uid"/>
                         </el-select>
                     </el-form-item>

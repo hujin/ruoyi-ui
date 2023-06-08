@@ -206,7 +206,7 @@
                         <el-option
                             v-for="dict in lampPostList"
                             :key="dict.id"
-                            :label="dict.name + dict.id"
+                            :label="dict.uid ? (dict.name + '(' + dict.uid + ')'): dict.name"
                             :value="dict.id"
                         />
                     </el-select>

@@ -377,6 +377,45 @@ export function getAlarmList(params){
     })
 }
 
+export function getAlarmDetail(id){
+    return request({
+        url:`/slp/slp/pole/warning/${id}`,
+        method:'get',
+    })
+}
+
+export function addAlarm(data){
+    return request({
+        url:`/slp/slp/pole/warning`,
+        method:'post',
+        data
+    })
+}
+
+export function submitAlarmHandleResult(data){
+    return request({
+        url:`/slp/slp/pole/warning/submitHandleResult`,
+        method:'post',
+        data
+    })
+}
+
+
+export function batchAlarmHandleResult(data){
+    return request({
+        url:`/slp/slp/pole/warning/batchUpdate`,
+        method:'post',
+        data
+    })
+}
+
+export function deleteAlarm(ids){
+    return request({
+        url:`/slp/slp/pole/warning/${ids}`,
+        method:'delete'
+    })
+}
+
 export function getAlarmHistoryDashboard(params){
     return request({
         url:`/slp/slp/pole/warning/dashboard`,

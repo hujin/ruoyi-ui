@@ -1,120 +1,120 @@
 <template>
-    <el-dialog title="详情" :visible.sync="open" width="1200px" append-to-body>
+    <el-dialog title="详情" :visible.sync="open" @close="close" width="1200px" append-to-body>
         <div class="alarm-detail">
             <el-row :gutter="10">
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">序  号:</div>
-                        <div class="val">9</div>
+                        <div class="val">{{detail.id}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备名称:</div>
-                        <div class="val">xxx道路-水位-监控点01</div>
+                        <div class="val">{{detail.deviceName}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">报警次数:</div>
-                        <div class="val">152</div>
+                        <div class="val">{{detail.warningTimes}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备类型:</div>
-                        <div class="val">xxxx</div>
+                        <div class="val">积水</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">报警类型:</div>
-                        <div class="val">水位报警</div>
+                        <div class="val">{{warningTypeFormat(detail.warningType)}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
-                        <div class="label">报警来源:</div>
-                        <div class="val">后台人工</div>
+                        <div class="label">报警等级:</div>
+                        <div class="val">{{detail.warningLevelStr + detail.warningExtraInfo}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备型号:</div>
-                        <div class="val">xxxxx</div>
+                        <div class="val">{{detail.pondingMonitor.type}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备UID:</div>
-                        <div class="val">xxxx</div>
+                        <div class="val">{{detail.deviceUid}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">报警时间:</div>
-                        <div class="val">2023-01-01 12:00:00</div>
+                        <div class="val">{{detail.createTime}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">所属道路:</div>
-                        <div class="val">xxx道路</div>
+                        <div class="val">{{roadFormat(detail.pondingMonitor.road)}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备状态:</div>
-                        <div class="val">正常</div>
+                        <div class="val">{{getEnableName(detail.pondingMonitor.enable)}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">道路侧向:</div>
-                        <div class="val">东</div>
+                        <div class="val">{{roadSideFormat(detail.pondingMonitor.roadSide)}}</div>
                     </div>
                 </el-col>
-                <el-col :span="8">
+                <el-col :span="24">
                     <div class="row">
                         <div class="label">报警描述:</div>
-                        <div class="val">当前积水65cm,请尽快处理</div>
+                        <div class="val">{{detail.warningContent}}</div>
                     </div>
                 </el-col>
-                <el-col :span="8">
-                    <div class="row">
-                        <div class="label">所属区:</div>
-                        <div class="val">萧山区</div>
-                    </div>
-                </el-col>
-                <el-col :span="8">
+                <el-col :span="24">
                     <div class="row">
                         <div class="label">详细地址:</div>
-                        <div class="val">盈丰路xxx</div>
+                        <div class="val">
+                            <div style="display:flex;align-items:center">
+                                    <div style="white-space:nowrap">{{detail.address}}</div>
+                                    <i @click="openMap(detail)" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
+                                </div>
+                        </div>
                     </div>
                 </el-col>
+                
             </el-row>
-            <div class="bg">
-                <div class="workflow-detail" v-if="has_done">
+            <div class="bg" v-if="detail.handleType == 'WORK_ORDER'">
+                <div class="workflow-detail">
                     <div class="workflow-detail-info">
                         <el-row>
                             <el-col :span="24">
                                 <div class="row">
                                     <div class="label">工作状态</div>
                                     <div class="val">
-                                        <el-tag size="medium">标签一</el-tag>
+                                        <el-tag size="medium">{{detail.workOrderHandleDetailVo.statusCodeDesc}}</el-tag>
                                     </div>
                                 </div>
                             </el-col>
                             <el-col :span="12">
                                 <div class="row">
                                     <div class="label">工单编号</div>
-                                    <div class="val">1245718297920180208</div>
+                                    <div class="val">{{detail.workOrderHandleDetailVo.workOrderNo}}</div>
                                 </div>
                             </el-col>
                             <el-col :span="12">
                                 <div class="row">
                                     <div class="label">处理期限</div>
-                                    <div class="val">2023-01-14</div>
+                                    <div class="val" v-if="detail.workOrderHandleDetailVo.expectedFinishTime">{{new Date(detail.expectedFinishTime).Format('yyyy-MM-dd hh:mm:ss')}}</div>
                                 </div>
                             </el-col>
                             <el-col :span="24">
@@ -122,30 +122,27 @@
                                     <div class="label">处理结果</div>
                                     <div class="val">
                                         <div style="margin-bottom:16px">
-                                            <el-link type="success" :underline="false">已修复</el-link>
+                                            <el-link type="success" :underline="false">{{detail.workOrderHandleDetailVo.workOrderHandleResult.handleResultTypeDesc}}</el-link>
                                         </div>
-                                        <div style="margin-bottom:16px">
-                                            <div class="remark">处理结果处理结果处理结果处理结果处理结果处理结果处理结果处理结果处理结果处理结理结果处理结果处理结果处理结果处理结果</div>
+                                        <div style="margin-bottom:16px" v-if="detail.workOrderHandleDetailVo.workOrderHandleResult.handleResultContent">
+                                            <div class="remark">{{detail.workOrderHandleDetailVo.workOrderHandleResult.handleResultContent}}</div>
                                         </div>
-                                        <div class="img-list">
-                                            <div class="img-item" v-for="(item,index) in form.img_list" :key="index"></div>
-                                        </div>
+                                       
                                     </div>
                                 </div>
                             </el-col>
-                            <el-col :span="24">
+                          
+                            <el-col :span="24" v-if="detail.workOrderHandleDetailVo.workOrderCheckResult">
                                 <div class="row">
                                     <div class="label">复核结果</div>
                                     <div class="val">
                                         <div style="margin-bottom:16px">
-                                            <el-link type="success" :underline="false">符合</el-link>
+                                            <el-link type="success" :underline="false">{{detail.workOrderHandleDetailVo.workOrderCheckResult.handleResultTypeDesc}}</el-link>
                                         </div>
                                         <div style="margin-bottom:16px">
-                                            <div class="remark">处理结果处理结果处理结果处理结果处理结果处理结果处理结果处理结果处理结果处理结理结果处理结果处理结果处理结果处理结果</div>
+                                            <div class="remark">{{detail.workOrderHandleDetailVo.workOrderCheckResult.handleResultContent}}</div>
                                         </div>
-                                        <div class="img-list">
-                                            <div class="img-item" v-for="(item,index) in form.img_list" :key="index"></div>
-                                        </div>
+                                      
                                     </div>
                                 </div>
                             </el-col>
@@ -153,15 +150,16 @@
                     </div>
                     <div class="workflow-detail-steps">
                         <div>
-                            <el-button>查看详情</el-button>
+                            <el-button @click="is_show = !is_show">查看详情</el-button>
                         </div>
-                        <div class="steps-wrap">
+                        <div class="steps-wrap" v-if="is_show">
                             <el-steps direction="vertical" :active="stepActive">
-                                <el-step v-for="(item,index) in steps" :title="item.name" :key="index">
+                                <el-step v-for="(item,index) in detail.workOrderHandleDetailVo.progressVoList" :title="item.stepName" :key="index">
                                     <template slot="description">
-                                        <div>
-                                            <div class="desc">{{item.desc}}</div>
-                                            <div class="date">{{item.date}}</div>
+                                        <div style="margin:8px 0" v-if="index != detail.workOrderHandleDetailVo.progressVoList.length - 1">
+                                            <div class="desc" v-if="item.check">{{item.deptName}} {{item.userNickName}}</div>
+                                            <div class="desc" v-else> {{item.userNickName}} -</div>
+                                            <div class="date" v-if="item.stepTime">{{new Date(item.stepTime).Format('yyyy-MM-dd hh:mm:ss')}}</div>
                                         </div>
                                     </template>
                                 </el-step>
@@ -169,65 +167,68 @@
                         </div>
                     </div>
                 </div>
-                <div class="workflow" v-else>
-                    <el-form :model="form" label-width="120px">
-                        <template v-if="form.is_dispose">
-                            <div>
-                                <el-form-item label="警报处理:">
-                                    <el-select v-model="form.dispose" placeholder="请选择" style="width:100%"></el-select>
-                                </el-form-item>
-                                <el-form-item label="警报处理描述:">
-                                    <el-input type="textarea" :rows="2" v-model="form.dispose_remark" placeholder="请输入"></el-input>
-                                </el-form-item>
-                            </div>
-                        </template>
-                        <template v-if="form.is_assign">
-                            <el-row :gutter="10">
-                                <el-col :span="12">
-                                    <el-form-item label="派单单位:" >
-                                        <el-select v-model="form.assign_depart" style="width:100%"></el-select>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="12">
-                                    <el-form-item label="派单人员:" >
-                                        <el-select v-model="form.assign_person" style="width:100%"></el-select>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="12">
-                                    <el-form-item label="处理期限:" >
-                                        <el-date-picker
-                                            v-model="form.assign_time"
-                                            type="date"
-                                            style="width:100%"
-                                            placeholder="选择日期">
-                                        </el-date-picker>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="12">
-                                    <el-form-item label="是否复核:" >
-                                        <el-select v-model="form.is_re_check" style="width:100%"></el-select>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="12">
-                                    <el-form-item label="复核单位:" >
-                                        <el-select v-model="form.re_check_depart" style="width:100%"></el-select>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="12">
-                                    <el-form-item label="复核人员:" >
-                                        <el-select v-model="form.re_check_person" style="width:100%"></el-select>
-                                    </el-form-item>
-                                </el-col>
-                            </el-row>
-                        </template>
-                    </el-form>
+               
+            </div>
+            <div class="bg" v-else>
+                <div class="workflow-detail">
+                    <div class="workflow-detail-info" style="padding:24px">
+                        <el-row>
+                            <el-col :span="24">
+                                <div style="font-weight: bolder;font-size:18px;margin-bottom:30px">处理</div>
+                            </el-col>
+                            <el-col :span="12">
+                                <div class="row">
+                                    <div class="label">警报处理</div>
+                                    <div class="val">
+                                        {{warningHandleFormat(detail.handleResult)}}
+                                    </div>
+                                </div>
+                            </el-col>
+                            <el-col :span="12">
+                                <div class="row">
+                                    <div class="label">处理单位</div>
+                                    <div class="val">
+                                        {{detail.handleUserDeptName}}
+                                    </div>
+                                </div>
+                            </el-col>
+                            <el-col :span="12">
+                                <div class="row">
+                                    <div class="label">警报处理描述</div>
+                                    <div class="val">
+                                        {{detail.handleDescription || '暂无描述'}}
+                                    </div>
+                                </div>
+                            </el-col>
+                            <el-col :span="12">
+                                <div class="row">
+                                    <div class="label">处理人</div>
+                                    <div class="val">
+                                        {{detail.handleUsername}}
+                                    </div>
+                                </div>
+                            </el-col>
+                        </el-row>
+                    </div>
                 </div>
             </div>
+        </div>
+        <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
+
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="close">返回</el-button>
         </div>
     </el-dialog>
 </template>
 <script>
+import { getWarningDetail } from "@/api/hydrops";
+import showMap from '@/components/show-map/index.vue'
+
 export default {
+    dicts: ['sys_road','sys_roadside', 'sys_hydrops_warning_type', 'sys_hydrops_warning_handle'],
+    components:{
+        showMap,
+    },
     props:{
        
         dialogShow:{
@@ -235,13 +236,24 @@ export default {
             default:false
         },
         id:{
-            type:String,
+            type:String | Number,
             default:''
         }
     },
     data(){
         return {
             open:false,
+            detail:{
+                pondingMonitor:{},
+                auditVo:{},
+                secondAuditVo:{},
+                workOrderCheckResult:{},
+                progressVoList:[],
+                workOrderHandleDetailVo:{
+                    workOrderHandleResult:{}
+                },
+                handleType:''
+            },
             form:{
                 is_dispose:false,
                 dispose:'',
@@ -255,42 +267,75 @@ export default {
                 re_check_person:'',
                 img_list:['','','','','','','','']
             },
-            steps:[{
-                name:'创建申请',
-                desc:'',
-                date:'2023-02-28 12:00:00'
-            },{
-                name:'提交',
-                desc:'xxx xxx 159****1101',
-                date:'2023-03-01 12:00:00'
-            },{
-                name:'审核通过',
-                desc:'xxx xxx 159****1102',
-                date:'2023-03-02 12:00:00'
-            },{
-                name:'派发工单',
-                desc:'xxx xxx 159****1103',
-                date:'2023-03-03 12:00:00'
-            },{
-                name:'工单处理',
-                desc:'xxx xxx 159****1104',
-                date:'2023-03-04 12:00:00'
-            },{
-                name:'提交处理结果',
-                desc:'xxx xxx 159****1105',
-                date:'2023-03-05 12:00:00'
-            },{
-                name:'复核工单',
-                desc:'xxx xxx 159****1106',
-                date:'2023-03-06 12:00:00'
-            }],
+           
             stepActive:1,
-            has_done:true
+            is_show:false,
+            showMapState:false,
+            showMapLongitude:'',
+            showMapLatitude:'',
         }
     },
     methods:{
-        getDetail(){
+        openMap(row){
+            this.showMapLatitude = row.latitude
+            this.showMapLongitude = row.longitude
 
+            this.showMapState = true
+        },
+        getEnableName(val){
+            let result = ''
+
+            if (val == '0') {
+                result = '非启用'
+            } else if (val == 1) {
+                result = '启用'
+
+            } else if (val == 2) {
+                result = '移除'
+
+            } 
+
+            return result
+        },
+        warningHandleFormat(handleResult){
+            return this.selectDictLabel(this.dict.type.sys_hydrops_warning_handle, handleResult);
+
+        },
+        roadSideFormat(roadSide) {
+            return this.selectDictLabel(this.dict.type.sys_roadside, roadSide);
+        },
+       
+        warningTypeFormat(warningType) {
+            return this.selectDictLabel(this.dict.type.sys_hydrops_warning_type, warningType);
+        },
+        roadFormat(road) {
+            return this.selectDictLabel(this.dict.type.sys_road, road);
+        },
+        getDetail(){
+            getWarningDetail({
+                id:this.id
+            }).then(res => {
+                if (res.code == 200) {
+                    this.$set(this, 'detail', res.data)
+                    let active = 0;
+                    if (res.data.workOrderHandleDetailVo) {
+                        if (res.data.workOrderHandleDetailVo.progressVoList) {
+                            res.data.workOrderHandleDetailVo.progressVoList.forEach((item,index) => {
+                                if (item.check) {
+                                    active = index + 1
+                                }
+                            })
+
+                            this.stepActive = active
+                        }
+                        
+                    }
+                    
+                }
+            })
+        },
+        close(){
+            this.$emit('close')
         }
     },
     watch:{
@@ -326,7 +371,7 @@ export default {
 
         .label{
             color: rgba(0,0,0,0.6);
-            width: 80px;
+            width: 100px;
             text-align: right;
             margin-right: 10px;
         }

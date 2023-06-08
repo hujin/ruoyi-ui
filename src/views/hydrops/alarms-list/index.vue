@@ -520,7 +520,7 @@ export default {
                 })
             }
         },
-         'sendOrderForm.checkDeptId'(val){
+        'sendOrderForm.checkDeptId'(val){
             console.log(val)
             if (val) {
                 listUser({

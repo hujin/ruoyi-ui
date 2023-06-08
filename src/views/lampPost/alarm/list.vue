@@ -41,7 +41,7 @@
                         type="primary"
                         plain
                         size="mini"
-                        @click="handleAdd"
+                        @click="handleMultDispose"
                         >批量处理</el-button>
                     <el-button
                         type="primary"
@@ -86,20 +86,16 @@
                         </el-table-column>
                         <el-table-column label="操作" align="left"  width="250">
                             <template slot-scope="scope">
+                                
                                 <el-button
                                     size="mini"
                                     type="text"
-                                    @click="handleUpdate(scope.row)"
-                                >编辑</el-button>
-                                <el-button
-                                    size="mini"
-                                    type="text"
-                                    @click="handleUpdate(scope.row)"
+                                    @click="handleDispose(scope.row)"
                                 >处理</el-button>
                                 <el-button
                                     size="mini"
                                     type="text"
-                                    @click="handleUpdate(scope.row)"
+                                    @click="handleSendOrder(scope.row)"
                                 >派单</el-button>
                                 <!-- <el-button
                                     size="mini"
@@ -109,12 +105,17 @@
                                 <el-button
                                     size="mini"
                                     type="text"
-                                    @click="handleUpdate(scope.row)"
+                                    @click="handleView(scope.row)"
                                 >详情</el-button>
                                 <el-button
                                     size="mini"
                                     type="text"
                                     @click="handleUpdate(scope.row)"
+                                >编辑</el-button>
+                                <el-button
+                                    size="mini"
+                                    type="text"
+                                    @click="handleDelete(scope.row)"
                                 >删除</el-button>
                             </template>
                         </el-table-column>
@@ -146,16 +147,16 @@
 
                 </el-form-item>
                 <el-form-item label="关联灯杆:">
-                    <el-select v-model="addForm.lampPostId" placeholder="请选择灯杆编号" style="width:100%" @change="lampPostChange">
+                    <el-select v-model="addForm.poleId" placeholder="请选择灯杆编号" style="width:100%" @change="lampPostChange">
                          <el-option
                                 v-for="dict in lampPostList"
-                                :key="dict.uid"
-                                :label="dict.name"
-                                :value="dict.uid"/>
+                                :key="dict.id"
+                                :label="dict.uid ?(dict.name + '(' + dict.uid + ')'): dict.name"
+                                :value="dict.id"/>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="故障维修设备:">
-                    <el-select v-model="addForm.device_id" placeholder="请选择设备类型" style="width:100%" @change="deviceChange">
+                    <el-select v-model="addForm.uid" placeholder="请选择设备类型" style="width:100%" @change="deviceChange">
                        <el-option
                                 v-for="dict in deviceList"
                                 :key="dict.uid"
@@ -164,14 +165,20 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="报警类型:">
-                    <el-select v-model="addForm.alarm_type" placeholder="请选择报警类型" style="width:100%"></el-select>
+                    <el-select v-model="addForm.warningType" placeholder="请选择报警类型" style="width:100%">
+                        <el-option
+                                v-for="dict in dict.type.sys_lamp_post_warning_type"
+                                :key="dict.value"
+                                :label="dict.label"
+                                :value="dict.value"/>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="内容描述:">
-                    <el-input type="textarea" :rows="2" v-model="addForm.remark" placeholder="请输入" style="width:100%"></el-input>
+                    <el-input type="textarea" :rows="2" v-model="addForm.warningRemark" placeholder="请输入" style="width:100%"></el-input>
                 </el-form-item>
                 <el-form-item label="工单完成期限:">
                     <el-date-picker
-                        v-model="addForm.time"
+                        v-model="addForm.finishTerm"
                         style="width:100%"
                         type="date"
                         placeholder="选择日期">
@@ -186,22 +193,28 @@
         <el-dialog title="处理" width="512px" :visible.sync="disposeState">
             <el-form ref="disposeForm" :model="disposeForm" label-width="140px">
                 <el-form-item label="序号:">
-                    <span>{{disposeForm.no}}</span>
+                    <span>{{detail.id}}</span>
                 </el-form-item>
                 <el-form-item label="设备名称:">
-                    <span>{{disposeForm.device_name}}</span>
+                    <span>{{detail.poleName + detail.deviceName}}</span>
                 </el-form-item>
                 <el-form-item label="报警类型:">
-                    <span>{{disposeForm.alarm_type}}</span>
+                    <span>{{detail.warningTypeStr}}</span>
                 </el-form-item>
                 <el-form-item label="报警描述:">
-                    <span>{{disposeForm.remark}}</span>
+                    <span>{{detail.warningRemark}}</span>
                 </el-form-item>
                 <el-form-item label="报警处理">
-                    <el-select v-model="disposeForm.dispose" placeholder="请选择处理方式"></el-select>
+                    <el-select v-model="disposeForm.handleResultStatus" placeholder="请选择处理方式" style="width:100%">
+                        <el-option
+                                v-for="dict in dict.type.sys_lamp_post_warning_handle"
+                                :key="dict.value"
+                                :label="dict.label"
+                                :value="dict.value"/>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="报警处理描述:">
-                    <el-input type="textarea" :rows="2" v-model="disposeForm.dispose_remark" placeholder="请输入"></el-input>
+                    <el-input type="textarea" :rows="2" v-model="disposeForm.handleRemark" placeholder="请输入"></el-input>
                 </el-form-item>
             </el-form>
              <div slot="footer" class="dialog-footer">
@@ -210,39 +223,45 @@
             </div>
         </el-dialog>
         <el-dialog title="批量处理" width="512px" :visible.sync="multDisposeState">
-            <el-form ref="disposeForm" :model="multDisposeForm" label-width="140px">
+            <el-form ref="multDisposeForm" :model="multDisposeForm" label-width="140px">
                 <el-form-item label="序号:">
-                    <span>{{multDisposeForm.no}}</span>
+                    <span>{{ids.join(',')}}</span>
                 </el-form-item>
                
                 <el-form-item label="报警处理">
-                    <el-select v-model="multDisposeForm.dispose" placeholder="请选择处理方式"></el-select>
+                    <el-select v-model="multDisposeForm.handleResultStatus" placeholder="请选择处理方式" style="width:100%">
+                        <el-option
+                                v-for="dict in dict.type.sys_lamp_post_warning_handle"
+                                :key="dict.value"
+                                :label="dict.label"
+                                :value="dict.value"/>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="报警处理描述:">
-                    <el-input type="textarea" :rows="2" v-model="multDisposeForm.dispose_remark" placeholder="请输入"></el-input>
+                    <el-input type="textarea" :rows="2" v-model="multDisposeForm.handleRemark" placeholder="请输入"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="multDisposeState = false">取 消</el-button>
-                <el-button type="primary" @click="submitMultDispose">确 定</el-button>
+                <el-button type="primary" @click="batchAlarmHandleResult">确 定</el-button>
             </div>
         </el-dialog>
         <el-dialog title="派单" width="512px" :visible.sync="assignState">
             <el-form ref="assignForm" :model="assignForm" label-width="140px">
                 <el-form-item label="序号:">
-                    <span>{{assignForm.no}}</span>
+                    <span>{{detail.id}}</span>
                 </el-form-item>
                 <el-form-item label="设备名称:">
-                    <span>{{assignForm.device_name}}</span>
+                    <span>{{detail.poleName + detail.deviceName}}</span>
                 </el-form-item>
                 <el-form-item label="报警类型:">
-                    <span>{{assignForm.alarm_type}}</span>
+                    <span>{{detail.warningTypeStr}}</span>
                 </el-form-item>
                 <el-form-item label="报警描述:">
-                    <span>{{assignForm.remark}}</span>
+                    <span>{{detail.warningRemark}}</span>
                 </el-form-item>
                 <el-form-item label="报警设备:">
-                    <span>{{assignForm.device_type}}</span>
+                    <span>{{detail.deviceName}}</span>
                 </el-form-item>
                 <el-form-item label="完成期限:">
                     <el-date-picker
@@ -251,20 +270,42 @@
                         placeholder="选择日期">
                     </el-date-picker>
                 </el-form-item>
-                <el-form-item label="派单部门">
-                    <el-select v-model="assignForm.assign_depart" placeholder="请选择"></el-select>
+                <el-form-item label="完成期限:">
+                    <el-date-picker v-model="assignForm.expectedFinishTime" 
+                                    type="date"
+                                    placeholder="请选择完成期限"
+                                    style="width:100%"
+                                    value-format="yyyy-MM-dd" ></el-date-picker>
                 </el-form-item>
-                <el-form-item label="派单人员">
-                    <el-select v-model="assignForm.assign_person" placeholder="请选择"></el-select>
+                <el-form-item label="派单部门:">
+                    <treeselect v-model="assignForm.handleDeptId" :options="deptOptions" :normalizer="normalizer" placeholder="请选择审核部门" />               
                 </el-form-item>
-                <el-form-item label="是否符合">
-                    <el-select v-model="assignForm.是否符合" placeholder="请选择"></el-select>
+                <el-form-item label="派单人员:">
+                    <el-select v-model="assignForm.handleUserId" placeholder="请选择部门" style="width:100%">
+                            <el-option
+                                v-for="dict in handleUserList"
+                                :key="dict.userId"
+                                :label="dict.nickName"
+                                :value="dict.userId"/>
+                    </el-select>
                 </el-form-item>
-                <el-form-item label="复核部门">
-                    <el-select v-model="assignForm.re_check_depart" placeholder="请选择"></el-select>
+                <el-form-item label="是否复核">
+                    <el-select v-model="assignForm.needCheck" style="width:100%">
+                        <el-option label="是" value="1" />
+                        <el-option label="否" value="0" />
+                    </el-select>
                 </el-form-item>
-                <el-form-item label="复核人员">
-                    <el-select v-model="assignForm.re_check_person" placeholder="请选择"></el-select>
+                <el-form-item label="复核部门:" v-if="assignForm.needCheck == 1">
+                    <treeselect v-model="assignForm.checkDeptId" :options="deptOptions" :normalizer="normalizer" placeholder="请选择审核部门" />               
+                </el-form-item>
+                <el-form-item label="复核人员:" v-if="assignForm.needCheck == 1">
+                    <el-select v-model="assignForm.checkUserId" placeholder="请选择部门" style="width:100%">
+                            <el-option
+                                v-for="dict in handleUserList"
+                                :key="dict.userId"
+                                :label="dict.nickName"
+                                :value="dict.userId"/>
+                    </el-select>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -272,7 +313,7 @@
                 <el-button type="primary" @click="submitAssign">确 定</el-button>
             </div>
         </el-dialog>
-        <detail :dialogShow="detailState" :id="alarm_id" v-if="detailState"></detail>
+        <detail :dialogShow="detailState" :id="alarm_id" v-if="detailState" @close="detailState = false"></detail>
         <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
         
     </div>
@@ -281,11 +322,12 @@
 
 import detail from './component/detail.vue'
 import { getAlarmList,
-         submitApply,
          getDeviceList,
-         getApplyDetail,
-         createWorkOrder,
-         deleteApply} from "@/api/lampPost";
+         getAlarmDetail,
+         addAlarm,
+         deleteAlarm,
+         submitAlarmHandleResult,
+         batchAlarmHandleResult} from "@/api/lampPost";
 
 import showMap from '@/components/show-map/index.vue'
 
@@ -297,7 +339,7 @@ import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {
-    dicts: ['sys_road','sys_roadside','sys_device_type', 'sys_audit_status','sys_lamp_post_warning_type'],
+    dicts: ['sys_road','sys_roadside','sys_device_type', 'sys_audit_status','sys_lamp_post_warning_type','sys_lamp_post_warning_handle'],
     components:{
         detail,
         showMap,
@@ -306,76 +348,64 @@ export default {
     data(){
         return {
             loading: false,
-            active:1,
+            active:0,
             tabHeaderList:[{
                 text:'未处理',
-                value:1
+                value:0
             },{
                 text:'已派单',
-                value:2
+                value:1
             },{
                 text:'处理中',
-                value:3
+                value:2
             },{
                 text:'已处理',
-                value:4
+                value:3
             }],
             total:0,
             queryParams:{
                 pageNum:1,
                 pageSize:20,
                 time:[],
-                type:''
+                type:'',
+                status:0
             },
             ids:[],
             list:[],
+            selectList:[],
             addState:false,
             addForm:{
+                id:'',
+                poleId:'',
+                type:'',
+                uid:'',
                 road:'',
-                applyUserId:'',
-                applyDeptId: undefined,
-                applyType:'',
-                auditUserId: '',
-                lampPostId:'',
-                deviceUid:'',
-                applyDevice:'',
-                applyContent:'',
-                serviceLifeType:'LONG',
-                serviceLifeTime:[],
-                serviceLifeStartTime:'',
-                serviceLifeEndTime:''
+                warningType:'',
+                finishTerm:'',
+                warningRemark:''
             },
             addRules:{
                 
             },
             disposeState:false,
             disposeForm:{
-                no:'',
-                device_name:'',
-                alarm_type:'',
-                remark:'',
-                dispose:'',
-                dispose_remark:''
+                handleResultStatus:'',
+                handleRemark:''
             },
             multDisposeState:false,
             multDisposeForm:{
-                no:'',
-                dispose:'',
-                dispose_remark:''
+                handleResultStatus:'',
+                handleRemark:''
             },
             assignState:false,
             assignForm:{
-                no:'',
-                device_name:'',
-                device_type:'',
-                alarm_type:'',
-                remark:'',
-                assign_time:'',
-                assign_depart:'',
-                assign_person:'',
-                is_re_check:false,
-                re_check_depart:'',
-                re_check_person:''
+                relationId:'',
+                expectedFinishTime:'',
+                needCheck:'',
+                handleDeptId:undefined,
+                handleUserId:'',
+                checkDeptId:undefined,
+                checkUserId:'',
             },
             detailState:false,
             alarm_id:'',
@@ -392,7 +422,91 @@ export default {
             showMapLatitude:'',
         }
     },
+    watch:{
+        'assignForm.handleDeptId'(val){
+            console.log(val)
+            if (val) {
+                listUser({
+                    deptId:val,
+                    pageNum:1,
+                    pageSize:9999
+                }).then(res => {
+                    if (res.code == 200) {
+                        this.$set(this, 'handleUserList', res.rows || [])
+                    }
+                })
+            }
+        },
+        'assignForm.checkDeptId'(val){
+            console.log(val)
+            if (val) {
+                listUser({
+                    deptId:val,
+                    pageNum:1,
+                    pageSize:9999
+                }).then(res => {
+                    if (res.code == 200) {
+                        this.$set(this, 'checkUserList', res.rows || [])
+                    }
+                })
+            }
+        },
+    },
     methods:{
+        
+        batchAlarmHandleResult(){
+            this.$refs["multDisposeForm"].validate(valid => {
+                if (valid) {
+                    let form = JSON.parse(JSON.stringify(this.multDisposeForm))
+                    form['ids'] = this.ids
+                    batchAlarmHandleResult(form).then(res => {
+                        if (res.code == 200) {
+                            this.$modal.msgSuccess("处理成功");
+                            this.multDisposeState = false
+                            this.getList();
+                        }
+                    })
+                }
+            });
+        },
+        handleDispose(row){
+            getAlarmDetail(row.id).then(res => {
+                this.$set(this, 'detail', res.data);
+                this.disposeState = true
+            })
+        },
+        handleSendOrder(row){
+            getAlarmDetail(row.id).then(res => {
+                this.$set(this, 'detail', res.data);
+                this.assignState = true
+            })
+        },
+        handleView(row){
+            this.alarm_id = row.id
+            this.detailState = true
+        },
+        handleMultDispose(){
+            if (this.ids.length == 0) {
+                this.$modal.msgError("请选择需要处理的数据");
+                return
+            }
+
+            let flag = false
+
+            this.selectList.forEach(item => {
+                if (item.handleStatus != null) {
+                    flag = true
+                }
+            })
+
+            if (flag) {
+                this.$modal.msgError("选择的数据中有已处理完的数据，请重新选择");
+                return
+            }
+
+            this.multDisposeState = true
+
+        },
         handleAnalyse(row){
 
         },
@@ -422,10 +536,11 @@ export default {
             })
         },
         lampPostChange(val){
+            console.log(val)
             if (val) {
                 let device_list = []
                 this.lampPostList.forEach(item => {
-                    if (item.uid == val){
+                    if (item.id == val){
                         device_list = item.slpOtherDeviceInfoList
                     }
                 })
@@ -453,7 +568,7 @@ export default {
             if (val) {
                 this.deviceList.forEach(item => {
                     if (item.uid == val) {
-                        this.auditForm.applyDevice = item.type
+                        // this.auditForm.applyDevice = item.type
                     }
                 })
             }
@@ -470,13 +585,32 @@ export default {
             }
             this.queryParams.pageNum = 1
             this.active = val;
+            this.queryParams.status = val
             this.getList()
         },
         handleAdd(){
             this.addState = true
         },
         handleMultDelete(){
+            if (this.ids.length == 0) {
+                this.$modal.msgError("请选择需要删除的数据");
+                return
+            }
 
+            this.$modal.confirm('是否确认删除该数据吗？').then(() => {
+                return deleteAlarm(this.ids.join(','));
+            }).then(() => {
+                this.getList();
+                this.$modal.msgSuccess("删除成功");
+            }).catch(() => {});
+        },
+        handleDelete(row){
+            this.$modal.confirm('是否确认删除该数据吗？').then(function() {
+                return deleteAlarm(row.id);
+            }).then(() => {
+                this.getList();
+                this.$modal.msgSuccess("删除成功");
+            }).catch(() => {});
         },
         handleExport(){
 
@@ -487,10 +621,10 @@ export default {
             let params  = {
                 pageSize:this.queryParams.pageSize,
                 pageNum:this.queryParams.pageNum,
-                startType:'DAY',
                 beginTime:'',
                 endTime:'',
-                type: this.queryParams.type
+                type: this.queryParams.type,
+                status:this.queryParams.status
             }
             if (this.queryParams.time.length > 0) {
                 params.beginTime = new Date(this.queryParams.time[0]).Format('yyyy-MM-dd')
@@ -506,16 +640,43 @@ export default {
             })
         },
         handleSelectionChange(selection) {
+            this.selectList = selection;
             this.ids = selection.map(item => item.id);
         },
         handleUpdate(){
 
         },
         submitAdd(){
+            this.$refs["addForm"].validate(valid => {
+                if (valid) {
+                    let form = JSON.parse(JSON.stringify(this.addForm))
 
+                    addAlarm(form).then(res => {
+                        if (res.code == 200) {
+                            this.$modal.msgSuccess("新增成功");
+                            this.addState = false
+                            this.getList();
+                        }
+                    })
+                }
+            });
         },
         submitDispose(){
+            this.$refs["disposeForm"].validate(valid => {
+                if (valid) {
+                    let form = JSON.parse(JSON.stringify(this.disposeForm))
 
+                    form['ids'] = [this.detail.id]
+                    batchAlarmHandleResult(form).then(res => {
+                        if (res.code == 200) {
+                            this.$modal.msgSuccess("处理成功");
+                            this.disposeState = false
+
+                            this.getList();
+                        }
+                    })
+                }
+            });
         },
         submitMultDispose(){
 
@@ -531,6 +692,7 @@ export default {
         }
     },
     created(){
+        this.initDept()
         this.getList()
     }
 }
