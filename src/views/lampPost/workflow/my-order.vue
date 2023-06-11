@@ -37,7 +37,7 @@
 
                 </div>
                 <div class="grid-wrap">
-                    <el-table ref="tables" style="width:100%;height:100%" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
+                    <el-table v-loading="loading" :data="list" @selection-change="handleSelectionChange">
                         <el-table-column type="selection" width="50" align="center" />
                         <el-table-column type="index" label="序号" width="50" align="center" />
 
@@ -123,16 +123,16 @@
                     <el-form-item label="完成期限:">
                         <span>{{new Date(detail.expectedFinishTime).Format('yyyy-MM-dd')}}</span>
                     </el-form-item>
-                    <el-form-item label="处理意见" v-if="detail.statusCode== 'WORK_ORDER_WAIT'"> 
+                    <!-- <el-form-item label="处理意见" v-if="detail.statusCode== 'WORK_ORDER_WAIT'"> 
                         <el-radio-group v-model="auditForm.success">
                             <el-radio :label="true">通过</el-radio>
                             <el-radio :label="false">不通过</el-radio>
                         </el-radio-group>
-                    </el-form-item>
+                    </el-form-item> -->
                     <el-form-item label="处理结果:" prop="handleResultContent" v-if="detail.statusCode== 'WORK_ORDER_WAIT'">
                         <el-input v-model="auditForm.handleResultContent" type="textarea" placeholder="请输入处理结果" style="width:100%"></el-input>
                     </el-form-item>
-                    <el-form-item label="是否复核" v-if="detail.statusCode== 'WORK_ORDER_WAIT_CHECK'"> 
+                    <el-form-item label="复核通过" v-if="detail.statusCode== 'WORK_ORDER_WAIT_CHECK'"> 
                         <el-radio-group v-model="auditForm.success">
                             <el-radio :label="true">通过</el-radio>
                             <el-radio :label="false">不通过</el-radio>

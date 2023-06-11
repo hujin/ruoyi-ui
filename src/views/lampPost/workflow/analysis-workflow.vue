@@ -68,6 +68,7 @@
 <script>
 import { getDeptOverview,getDeptCreateStat,getDeptApplyPropStat } from "@/api/lampPost";
 import * as echarts from 'echarts'
+import Breadcrumb from '@/components/Breadcrumb'
 
 export default {
     data(){
@@ -90,6 +91,9 @@ export default {
                 totalDeptNum: 0
             }
         }
+    },
+    components:{
+        Breadcrumb
     },
     methods:{
         initChart1(){

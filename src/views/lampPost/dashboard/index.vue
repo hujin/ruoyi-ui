@@ -599,6 +599,7 @@ export default {
             })
         },
         showDetail(detail){
+            console.log(detail)
             this.$set(this, 'detail', detail)
             this.$nextTick(() => {
                 this.visible = true

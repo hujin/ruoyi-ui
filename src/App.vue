@@ -24,7 +24,7 @@ export default {
 <style scoped>
 #app{
   min-width: 1920px;
-  overflow: scroll;
+  overflow: auto;
 }
 #app .theme-picker {
   display: none;

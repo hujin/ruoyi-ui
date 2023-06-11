@@ -101,13 +101,13 @@
                                 <el-button
                                     size="mini"
                                     type="text"
-                                    v-if="scope.row.status == 0"
+                                    v-if="scope.row.status == 99"
                                     @click="handleUpdate(scope.row.id, 1)"
                                 >发布</el-button>
                                  <el-button
                                     size="mini"
                                     type="text"
-                                    v-if="scope.row.status == 99 || scope.row.status == 2"
+                                    v-if="scope.row.status == 99 || scope.row.status == 2 || scope.row.status == 1"
                                     @click="handleView(scope.row)"
                                 >详情</el-button>
                                 <el-button
@@ -202,7 +202,7 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="关联灯杆">
-                    <el-select v-model="form.poleId" placeholder="请选择关联灯杆"  style="width:100%" @change="poleChange">
+                    <el-select filterable v-model="form.poleId" placeholder="请选择关联灯杆"  style="width:100%" @change="poleChange">
                         <el-option
                             v-for="dict in lampPostList"
                             :key="dict.id"

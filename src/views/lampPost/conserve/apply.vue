@@ -169,7 +169,7 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="关联灯杆">
-                    <el-select v-model="form.poleId"  style="width:100%">
+                    <el-select filterable  v-model="form.poleId"  style="width:100%">
                         <el-option
                             v-for="dict in lampPostList"
                             :key="dict.id"
@@ -394,7 +394,7 @@ export default {
                 }
             })
         },
-        handleDelete(){
+        handleDelete(row){
             this.$modal.confirm('是否确认删除该数据吗？').then(function() {
                 return deleteComserveApply(row.id);
             }).then(() => {

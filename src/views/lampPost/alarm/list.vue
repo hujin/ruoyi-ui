@@ -501,7 +501,7 @@ export default {
 
         },
         handleAnalyse(row){
-
+            this.$router.push(`/lampPost/alarm/record?id=${row.id}`)
         },
         openMap(row){
             this.showMapLatitude = row.latitude
