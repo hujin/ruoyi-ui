@@ -145,9 +145,24 @@ export function submitSecondAudit(data){
 
 export function getMyWorkOrderListPaged(params){
     return request({
-        url:`/slp/slp/approval/getMyWorkOrderListPaged`,
+        url:`/slp/slp/workOrder/list`,
         method:'get',
         params
+    })
+}
+
+export function getWorkOrderDetail(params){
+    return request({
+        url:`/slp/slp/workOrder/getWorkOrderDetail`,
+        params,
+        method:'get'
+    })
+}
+
+export function getWorkOrderExceptionNum(){
+    return request({
+        url:`/slp/slp/workOrder/getWorkOrderExceptionNum`,
+        method:'get',
     })
 }
 

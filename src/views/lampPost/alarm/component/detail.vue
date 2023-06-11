@@ -41,7 +41,7 @@
                 <el-col :span="8">
                     <div class="row">
                         <div class="label">设备型号:</div>
-                        <div class="val">{{detail.type}}</div>
+                        <div class="val">{{detail.deviceMode}}</div>
                     </div>
                 </el-col>
                 <el-col :span="8">
@@ -180,7 +180,7 @@
                                 <div class="row">
                                     <div class="label">警报处理</div>
                                     <div class="val">
-                                        {{warningHandleFormat(detail.handleResult)}}
+                                        {{detail.handleResultStatusStr}}
                                     </div>
                                 </div>
                             </el-col>
@@ -188,7 +188,7 @@
                                 <div class="row">
                                     <div class="label">处理单位</div>
                                     <div class="val">
-                                        {{detail.handleUserDeptName}}
+                                        {{detail.handleUserDept}}
                                     </div>
                                 </div>
                             </el-col>
@@ -204,7 +204,7 @@
                                 <div class="row">
                                     <div class="label">处理人</div>
                                     <div class="val">
-                                        {{detail.handleUsername}}
+                                        {{detail.handleUserName}}
                                     </div>
                                 </div>
                             </el-col>

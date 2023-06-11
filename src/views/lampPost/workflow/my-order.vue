@@ -34,7 +34,7 @@
                         size="mini"
                         @click="handleExport"
                     >导出</el-button>
-
+                    <span v-if="expCount > 0" style="font-size:16px;color:#eb0e1d;margin-left:24px">你有{{expCount}}条异常工单，请及时处理</span>
                 </div>
                 <div class="grid-wrap">
                     <el-table ref="tables" style="width:100%;height:100%" v-loading="loading" :data="list" @selection-change="handleSelectionChange">
@@ -42,7 +42,7 @@
                         <el-table-column type="index" label="序号" width="50" align="center" />
 
                         <el-table-column label="工单号" align="center"  prop="workOrderNo" width="200px"  />
-                        <el-table-column label="设备类型" align="center"  prop="applyTypeDesc" width="100px" />
+                        <el-table-column label="设备类型" align="center"  prop="deviceType" width="100px" />
                         <el-table-column label="内容描述" align="center"  prop="applyContent" width="200px"  />
                         <el-table-column label="完成期限" align="center"  prop="createTime"  width="120px" >
                             <template slot-scope="scope">
@@ -52,7 +52,7 @@
                         <el-table-column label="使用时长" align="center"  prop="serviceLifeTimeStr"  width="200px"></el-table-column>
                         <el-table-column label="生成时间" align="center" prop="applyTime" width="120px" >
                              <template slot-scope="scope">
-                                <div>{{new Date(scope.row.workOrderCreateTime).Format('yyyy-MM-dd')}}</div>
+                                <div>{{new Date(scope.row.createTime).Format('yyyy-MM-dd')}}</div>
                             </template>
                         </el-table-column>
                         <el-table-column label="上报人" align="center"  prop="applyUserNickName"  width="120px" />
@@ -63,12 +63,13 @@
                         <el-table-column label="处理结果" align="center" prop="workOrderHandleResultContent"  />
                         <el-table-column label="复核结果" align="center"  prop="workOrderCheckResultContent"  />
 
-                        <el-table-column label="定位" align="center"  width="230px" >
+                        <el-table-column label="定位" align="left"  width="230px" >
                             <template slot-scope="scope">
-                                <div style="display:flex;align-items:center">
-                                    <div>{{scope.row.applyDept.deptAddr}}</div>
-                                    <i @click="openMap(scope.row.applyDept.deptAddr)" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
+                                <div style="display:flex;align-items:center" v-if="scope.row.deviceAddress">
+                                    <div>{{scope.row.deviceAddress}}</div>
+                                    <i @click="openMap(scope.row)" style="font-size:16px;cursor: pointer;color:#1890ff" class="el-icon-location-information"></i>
                                 </div>
+                                <div v-else>暂无</div>
                             </template>
                         </el-table-column>
                         <el-table-column label="操作" fixed="right" width="100px" align="center" >
@@ -121,7 +122,7 @@
                     </el-form-item>
                     
                     <el-form-item label="完成期限:">
-                        <span>{{new Date(detail.expectedFinishTime).Format('yyyy-MM-dd')}}</span>
+                        <span>{{new Date(detail.expectFinishTime).Format('yyyy-MM-dd')}}</span>
                     </el-form-item>
                     <el-form-item label="处理意见" v-if="detail.statusCode== 'WORK_ORDER_WAIT'"> 
                         <el-radio-group v-model="auditForm.success">
@@ -160,6 +161,8 @@
         
         <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
         <detail :dialogShow="detailState" :id="detail_id" v-if="detailState" @close="detailState = false"></detail>
+        <pole-detail :dialogShow="poleDetailState" :id="detail_id" v-if="poleDetailState" @close="poleDetailState = false"></pole-detail>
+        <ponding-detail :dialogShow="pondingState" :id="detail_id" v-if="pondingState" @close="pondingState = false"></ponding-detail>
 
     </div>
 </template>
@@ -168,14 +171,24 @@ import { getToken } from "@/utils/auth";
 import showMap from '@/components/show-map/index.vue'
 import detail from './component/detail.vue'
 
-import { getMyWorkOrderListPaged,getApplyDetail,submitHandleResult,submitCheckHandleResult } from "@/api/lampPost";
+import { getMyWorkOrderListPaged,
+         getApplyDetail,
+         getWorkOrderDetail,
+         getWorkOrderExceptionNum,
+         submitHandleResult,
+         submitCheckHandleResult } from "@/api/lampPost";
 
+import { getWarningDetail } from "@/api/hydrops";
 
+import poleDetail from '../alarm/component/detail.vue'
+import pondingDetail from '../../hydrops/alarms-history/component/detail.vue'
 export default {
     dicts: ['sys_road', 'sys_audit_status'],
      components:{
         showMap,
-        detail
+        detail,
+        poleDetail,
+        pondingDetail,
     },
     data(){
         return {
@@ -188,13 +201,15 @@ export default {
                 pageNum:1,
                 pageSize:20,
                 time:[],
-                applyQueryStartTime:'',
-                applyQueryEndTime:'',
+                startTime:'',
+                endTime:'',
                 statusCode:''
             },
             ids:[],
             list:[],
             detailState:false,
+            poleDetailState:false,
+            pondingState:false,
             auditState:false,
             auditForm:{
                 approvalId:'',
@@ -274,6 +289,8 @@ export default {
                 handleResultContent:''
             },
             detail_id:'',
+            detail_type:'',
+            expCount:0
         }
     },
     methods:{
@@ -306,6 +323,7 @@ export default {
                     if (form.expectedFinishTime) {
                         form.expectedFinishTime = new Date(form.expectedFinishTime).getTime()
                     }
+                    form['type'] = this.detail_type
                     if (this.detail.statusCode == 'WORK_ORDER_WAIT') {
                         submitHandleResult(form).then(res => {
                             if (res.code === 200) {
@@ -374,7 +392,7 @@ export default {
                 queryParams.applyQueryStartTime = new Date(this.queryParams.time[0]).getTime()
                 queryParams.applyQueryEndTime = new  Date(this.queryParams.time[1]).getTime()
             }
-            this.download('/slp/slp/approval/getMyWorkOrderListPaged/export', queryParams, `device_${new Date().getTime()}.xlsx`) 
+            this.download('/slp/slp/workOrder/export', queryParams, `device_${new Date().getTime()}.xlsx`) 
 
         },
         handleSelectionChange(selection) {
@@ -382,31 +400,71 @@ export default {
         },
         handleView(row){
             this.detail_id = row.id;
-            this.detailState = true;
+            this.detail_type = row.type 
+
+            if (this.detail_type == 'PONDING') {
+                this.pondingState = true
+            }
+
+            if (this.detail_type == 'POLE') {
+                this.poleDetailState = true
+            }
+
+            if (this.detail_type == 'APPLY') {
+                this.detailState = true
+
+            }
 
         },
         handleUpdate(row){
-            getApplyDetail({
-                id:row.id
-            }).then(res => {
-                if (res.code == 200) {
-                    this.$set(this,'detail', res.data)
-                    this.auditState = true
-                }
-            })
+
+             getWorkOrderDetail({
+                    workOrderId:row.id
+                }).then(res => {
+                    if (res.code == 200) {
+                        this.$set(this,'detail', res.data)
+                        this.auditState = true
+                    }
+                })
+            // if(row.type == 'APPLY') {
+               
+            // } 
+
+            // if (row.type == 'POLE') {
+            //     getAlarmDetail({
+            //         id:row.id
+            //     }).then(res => {
+            //          if (res.code == 200) {
+            //             this.$set(this,'detail', res.data)
+            //             this.auditState = true
+            //         }
+            //     })
+            // }
+
+            // if (row.type == 'PONDING') {
+            //     getWarningDetail({
+            //         id:row.id
+            //     }).then(res => {
+            //          if (res.code == 200) {
+            //             this.$set(this,'detail', res.data)
+            //             this.auditState = true
+            //         }
+            //     })
+            // }
+            
         },
         getList(){
              let params = {
                 pageNum: this.queryParams.pageNum,
                 pageSize: this.queryParams.pageSize,
-                applyQueryStartTime:'',
-                applyQueryEndTime:'',
+                startTime:'',
+                endTime:'',
                 statusCode: this.queryParams.statusCode
             }
 
             if (this.queryParams.time.length > 0) {
-                params.applyQueryStartTime = new Date(this.queryParams.time[0]).getTime()
-                params.applyQueryEndTime = new Date(this.queryParams.time[1]).getTime()
+                params.startTime = new Date(this.queryParams.time[0]).getTime()
+                params.endTime = new Date(this.queryParams.time[1]).getTime()
             }
 
             getMyWorkOrderListPaged(params).then(res => {
@@ -426,6 +484,11 @@ export default {
         },
     },
     created(){
+        getWorkOrderExceptionNum().then(res => {
+            if (res.code == 200) {
+                this.expCount = res.data
+            }
+        })
         this.getList()
     }
 }

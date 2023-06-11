@@ -262,7 +262,7 @@
         </el-dialog>
        
         <show-map v-if="showMapState" :visible="showMapState" :lng="showMapLongitude" :lat="showMapLatitude" @close="showMapState = false"></show-map>
-        <detail :dialogShow="detailState" :id="detail_id" v-if="detailState" @close="detailState = false"></detail>
+        <detail  :dialogShow="detailState" :id="detail_id" v-if="detailState" @close="detailState = false"></detail>
 
     </div>
 </template>
@@ -270,6 +270,7 @@
 import { getToken } from "@/utils/auth";
 import showMap from '@/components/show-map/index.vue'
 import detail from './component/detail.vue'
+
 
 import { getMyApplyList,
          submitApply,
@@ -290,6 +291,7 @@ export default {
     components:{
         showMap,
         detail,
+        
         Treeselect
     },
     data(){
@@ -313,6 +315,8 @@ export default {
             ids:[],
             list:[],
             detailState:false,
+            poleDetailState:false,
+            pondingState:false,
             auditState:false,
             auditForm:{
                 applyUserId:'',
@@ -407,7 +411,8 @@ export default {
             auditUserList:[],
             handleUserList:[],
             checkWorkOrderUserList:[],
-            detail_id:''
+            detail_id:'',
+            detail_type:''
         }
     },
     watch:{
@@ -468,6 +473,8 @@ export default {
         openDetail(row){
             this.detail_id = row.id;
             this.detailState = true
+
+           
         },
         initDept(){
             listDept().then(response => {
